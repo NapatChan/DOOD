@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# build output (โฮสต์ build เองจาก source)
+dist/
+*.tsbuildinfo
+
+# ความลับ — สำคัญ! กัน API key หลุด (เฟส 2 AI)
+.env
+.env.*
+!.env.example
+
+# ไฟล์ชั่วคราว/ทดสอบ
+scratch-*
+scratch-shots/
+
+# ระบบ/เครื่องมือ
+.DS_Store
+*.local
+*.bak
+.vite/
+
+# Claude Code settings ส่วนตัว (ไม่ควรขึ้น repo)
+.claude/settings.local.json

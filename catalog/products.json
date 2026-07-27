@@ -1,0 +1,225 @@
+{
+  "version": 1,
+  "products": [
+    {
+      "id": "hat-01",
+      "category": "hat",
+      "name": "หมวกดำ",
+      "price": 350,
+      "color": "#1a1a19",
+      "image": "hats/01.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "hat-02",
+      "category": "hat",
+      "name": "หมวกเบอร์กันดี",
+      "price": 350,
+      "color": "#570c19",
+      "image": "hats/02.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "hat-03",
+      "category": "hat",
+      "name": "หมวกกากี",
+      "price": 320,
+      "color": "#a89373",
+      "image": "hats/03.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "hat-04",
+      "category": "hat",
+      "name": "หมวกน้ำตาล",
+      "price": 320,
+      "color": "#563f2f",
+      "image": "hats/04.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "hat-05",
+      "category": "hat",
+      "name": "หมวกเขียวเข้ม",
+      "price": 340,
+      "color": "#192f21",
+      "image": "hats/05.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "hat-06",
+      "category": "hat",
+      "name": "หมวกขาว",
+      "price": 320,
+      "color": "#ebebeb",
+      "image": "hats/06.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "top-01",
+      "category": "top",
+      "name": "เสื้อเชิ้ตขาว",
+      "price": 590,
+      "color": "#f3f3f3",
+      "image": "shirts/01.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "top-02",
+      "category": "top",
+      "name": "เสื้อเชิ้ตเขียวเข้ม",
+      "price": 620,
+      "color": "#212f23",
+      "image": "shirts/02.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "top-03",
+      "category": "top",
+      "name": "เสื้อเชิ้ตน้ำตาลเอิร์ธ",
+      "price": 620,
+      "color": "#553c2d",
+      "image": "shirts/03.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "top-04",
+      "category": "top",
+      "name": "เสื้อเชิ้ตกากี",
+      "price": 600,
+      "color": "#99896d",
+      "image": "shirts/04.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "top-05",
+      "category": "top",
+      "name": "เสื้อเชิ้ตเบอร์กันดี",
+      "price": 640,
+      "color": "#510d16",
+      "image": "shirts/05.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "top-06",
+      "category": "top",
+      "name": "เสื้อเชิ้ตดำ",
+      "price": 640,
+      "color": "#121212",
+      "image": "shirts/06.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "pants-01",
+      "category": "pants",
+      "name": "กางเกงเบอร์กันดี",
+      "price": 690,
+      "color": "#42131a",
+      "image": "pants/01.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "pants-02",
+      "category": "pants",
+      "name": "กางเกงเขียวเข้ม",
+      "price": 690,
+      "color": "#283229",
+      "image": "pants/02.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "pants-03",
+      "category": "pants",
+      "name": "กางเกงดำ",
+      "price": 650,
+      "color": "#1d1b1b",
+      "image": "pants/03.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "pants-04",
+      "category": "pants",
+      "name": "กางเกงกากี",
+      "price": 650,
+      "color": "#998666",
+      "image": "pants/04.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "pants-05",
+      "category": "pants",
+      "name": "กางเกงน้ำตาล",
+      "price": 620,
+      "color": "#503628",
+      "image": "pants/05.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "pants-06",
+      "category": "pants",
+      "name": "กางเกงขาว",
+      "price": 620,
+      "color": "#efefef",
+      "image": "pants/06.webp",
+      "buyUrl": "",
+      "style": ""
+    },
+    {
+      "id": "top-mrzaimgvtu",
+      "category": "top",
+      "name": "เสื้อเชิ้ตดำลายทาง",
+      "price": 700,
+      "color": "#212225",
+      "image": "shirts/top-mrzaimgvtu.webp",
+      "buyUrl": "",
+      "style": "casual"
+    },
+    {
+      "id": "top-ms1mwt9w84",
+      "category": "top",
+      "name": "เสื้อโปโลสีขาวขอบแดง",
+      "price": 750,
+      "color": "#ded5d2",
+      "image": "shirts/top-ms1mwt9w84.webp",
+      "buyUrl": "",
+      "style": "casual"
+    },
+    {
+      "id": "pants-ms1n1vy1sj",
+      "category": "pants",
+      "name": "กางเกงยีนส์",
+      "price": 800,
+      "color": "#354661",
+      "image": "pants/pants-ms1n1vy1sj.webp",
+      "buyUrl": "",
+      "style": "vintage"
+    },
+    {
+      "id": "hat-ms1n57unuv",
+      "category": "hat",
+      "name": "หมวกดำnike",
+      "price": 450,
+      "color": "#191919",
+      "image": "hats/hat-ms1n57unuv.webp",
+      "buyUrl": "",
+      "style": "casual"
+    }
+  ]
+}
