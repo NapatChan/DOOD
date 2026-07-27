@@ -1,0 +1,16 @@
+{
+  "// หมายเหตุ": "ปุ่มด้านล่างต้องติดตั้ง extension 'VsCode Task Buttons' (SanjulaGanepola) ก่อน",
+  "VsCodeTaskButtons.showCounter": false,
+  "VsCodeTaskButtons.tasks": [
+    {
+      "label": "▶️ Start DOOD",
+      "task": "▶️ Start DOOD",
+      "tooltip": "เริ่มระบบ + เปิดหน้าแอดมิน"
+    },
+    {
+      "label": "⏹️ Stop DOOD",
+      "task": "⏹️ Stop DOOD",
+      "tooltip": "หยุดระบบ"
+    }
+  ]
+}

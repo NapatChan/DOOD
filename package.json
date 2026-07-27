@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "stop": "pkill -f vite || true",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "add": "node scripts/add-images.mjs"

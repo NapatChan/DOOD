@@ -220,6 +220,66 @@
       "image": "hats/hat-ms1n57unuv.webp",
       "buyUrl": "",
       "style": "casual"
+    },
+    {
+      "id": "top-ms2x8kqhxh",
+      "category": "top",
+      "name": "แจ็คเก็ตสีขาวลายไฟ",
+      "price": 1280,
+      "color": "#abaaa0",
+      "image": "shirts/top-ms2x8kqhxh.webp",
+      "buyUrl": "",
+      "style": "street"
+    },
+    {
+      "id": "hat-ms2x9gginl",
+      "category": "hat",
+      "name": "หมวกสีขาวลายดาว",
+      "price": 390,
+      "color": "#dad1cb",
+      "image": "hats/hat-ms2x9gginl.webp",
+      "buyUrl": "",
+      "style": "street"
+    },
+    {
+      "id": "hat-ms2xa02biw",
+      "category": "hat",
+      "name": "หมวกถังสีดำ",
+      "price": 350,
+      "color": "#181818",
+      "image": "hats/hat-ms2xa02biw.webp",
+      "buyUrl": "",
+      "style": "minimal"
+    },
+    {
+      "id": "top-ms2xahak75",
+      "category": "top",
+      "name": "แจ็คเก็ตสีดำ",
+      "price": 990,
+      "color": "#18191b",
+      "image": "shirts/top-ms2xahak75.webp",
+      "buyUrl": "",
+      "style": "minimal"
+    },
+    {
+      "id": "pants-ms2xb3s6k0",
+      "category": "pants",
+      "name": "กางเกงวอร์มสีเทา",
+      "price": 790,
+      "color": "#949494",
+      "image": "pants/pants-ms2xb3s6k0.webp",
+      "buyUrl": "",
+      "style": "casual"
+    },
+    {
+      "id": "hat-ms2xbq89pl",
+      "category": "hat",
+      "name": "หมวกคีโมสีดำ",
+      "price": 450,
+      "color": "#161616",
+      "image": "hats/hat-ms2xbq89pl.webp",
+      "buyUrl": "",
+      "style": "street"
     }
   ]
 }
