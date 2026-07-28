@@ -129,7 +129,9 @@
       "color": "#42131a",
       "image": "pants/01.webp",
       "buyUrl": "",
-      "style": ""
+      "style": "",
+      "fit": "long",
+      "aspect": 0.46
     },
     {
       "id": "pants-02",
@@ -139,7 +141,9 @@
       "color": "#283229",
       "image": "pants/02.webp",
       "buyUrl": "",
-      "style": ""
+      "style": "",
+      "fit": "long",
+      "aspect": 0.47
     },
     {
       "id": "pants-03",
@@ -149,7 +153,9 @@
       "color": "#1d1b1b",
       "image": "pants/03.webp",
       "buyUrl": "",
-      "style": ""
+      "style": "",
+      "fit": "long",
+      "aspect": 0.46
     },
     {
       "id": "pants-04",
@@ -159,7 +165,9 @@
       "color": "#998666",
       "image": "pants/04.webp",
       "buyUrl": "",
-      "style": ""
+      "style": "",
+      "fit": "long",
+      "aspect": 0.46
     },
     {
       "id": "pants-05",
@@ -169,7 +177,9 @@
       "color": "#503628",
       "image": "pants/05.webp",
       "buyUrl": "",
-      "style": ""
+      "style": "",
+      "fit": "long",
+      "aspect": 0.5
     },
     {
       "id": "pants-06",
@@ -179,7 +189,9 @@
       "color": "#efefef",
       "image": "pants/06.webp",
       "buyUrl": "",
-      "style": ""
+      "style": "",
+      "fit": "long",
+      "aspect": 0.48
     },
     {
       "id": "top-mrzaimgvtu",
@@ -209,7 +221,9 @@
       "color": "#354661",
       "image": "pants/pants-ms1n1vy1sj.webp",
       "buyUrl": "",
-      "style": "vintage"
+      "style": "vintage",
+      "fit": "long",
+      "aspect": 0.47
     },
     {
       "id": "hat-ms1n57unuv",
@@ -249,7 +263,9 @@
       "color": "#181818",
       "image": "hats/hat-ms2xa02biw.webp",
       "buyUrl": "",
-      "style": "minimal"
+      "style": "minimal",
+      "gender": "unisex",
+      "scale": 0.8
     },
     {
       "id": "top-ms2xahak75",
@@ -269,7 +285,9 @@
       "color": "#949494",
       "image": "pants/pants-ms2xb3s6k0.webp",
       "buyUrl": "",
-      "style": "casual"
+      "style": "casual",
+      "fit": "long",
+      "aspect": 0.58
     },
     {
       "id": "hat-ms2xbq89pl",
@@ -280,6 +298,110 @@
       "image": "hats/hat-ms2xbq89pl.webp",
       "buyUrl": "",
       "style": "street"
+    },
+    {
+      "id": "top-ms30vikw0k",
+      "category": "top",
+      "name": "เสื้อสีดำ",
+      "price": 250,
+      "color": "#1c1c1c",
+      "image": "shirts/top-ms30vikw0k.webp",
+      "buyUrl": "",
+      "style": "casual",
+      "gender": "female",
+      "scale": 0.9
+    },
+    {
+      "id": "top-ms30x1q5vv",
+      "category": "top",
+      "name": "เสื้อสายเดี่ยวสีดำ",
+      "price": 320,
+      "color": "#1c1c20",
+      "image": "shirts/top-ms30x1q5vv.webp",
+      "buyUrl": "",
+      "style": "casual",
+      "gender": "female",
+      "scale": 0.8
+    },
+    {
+      "id": "top-ms30y7c7xr",
+      "category": "top",
+      "name": "เสื้อสายเดี่ยวขาวดำ",
+      "price": 450,
+      "color": "#525552",
+      "image": "shirts/top-ms30y7c7xr.webp",
+      "buyUrl": "",
+      "style": "casual",
+      "gender": "female",
+      "scale": 0.9
+    },
+    {
+      "id": "top-ms310bijvq",
+      "category": "pants",
+      "name": "กระโปรงดำ",
+      "price": 490,
+      "color": "#1d1e20",
+      "image": "pants/top-ms310bijvq.webp",
+      "buyUrl": "",
+      "style": "",
+      "gender": "female",
+      "fit": "short",
+      "aspect": 1.63,
+      "scale": 1.12
+    },
+    {
+      "id": "top-ms311er0qs",
+      "category": "pants",
+      "name": "กางเกงยีนส์ขาสั้น",
+      "price": 490,
+      "color": "#575757",
+      "image": "pants/top-ms311er0qs.webp",
+      "buyUrl": "",
+      "style": "",
+      "gender": "female",
+      "fit": "short",
+      "aspect": 1.4,
+      "scale": 1.14
+    },
+    {
+      "id": "top-ms312033r4",
+      "category": "pants",
+      "name": "กระโปรงยีนส์",
+      "price": 550,
+      "color": "#333534",
+      "image": "pants/top-ms312033r4.webp",
+      "buyUrl": "",
+      "style": "",
+      "gender": "female",
+      "fit": "short",
+      "aspect": 1.63
+    },
+    {
+      "id": "pants-ms3hv4iec4",
+      "category": "pants",
+      "name": "กระโปรงแดง",
+      "price": 390,
+      "color": "#885f5b",
+      "image": "pants/pants-ms3hv4iec4.webp",
+      "buyUrl": "",
+      "style": "casual",
+      "gender": "female",
+      "fit": "short",
+      "aspect": 1.54,
+      "scale": 1.2
+    },
+    {
+      "id": "pants-ms3krd0mde",
+      "category": "pants",
+      "name": "กระโปรงนำตาล",
+      "price": 800,
+      "color": "#413932",
+      "image": "pants/pants-ms3krd0mde.webp",
+      "buyUrl": "",
+      "style": "",
+      "gender": "female",
+      "fit": "short",
+      "aspect": 1.47
     }
   ]
 }

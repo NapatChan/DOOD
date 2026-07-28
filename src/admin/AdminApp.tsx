@@ -1,5 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
-import { CATEGORIES, CATEGORY_LABEL, GARMENT_TILE_BG, type Category } from '../types';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  CATEGORIES,
+  CATEGORY_LABEL,
+  FIT_LABEL,
+  GARMENT_TILE_BG,
+  GENDER_LABEL,
+  type Category,
+  type Fit,
+  type Gender,
+} from '../types';
 import { STYLES, styleLabel } from '../config/styles';
 import {
   createProduct,
@@ -8,6 +17,7 @@ import {
   updateProduct,
   type AdminProduct,
 } from './api';
+import FittingPreview, { type PreviewGarment } from './FittingPreview';
 
 // อ่านไฟล์ → dataURL (base64) สำหรับส่งขึ้น API
 function fileToDataUrl(file: File): Promise<string> {
@@ -26,6 +36,10 @@ interface FormState {
   price: string;
   buyUrl: string;
   style: string;
+  gender: Gender;
+  fit: Fit | 'auto'; // ทรงท่อนล่าง (auto = เดาจากรูป)
+  scale: number; // ตัวคูณขนาดรายชิ้น (1 = ปกติ)
+  aspect?: number; // สัดส่วนรูป (มีตอนแก้ไขของเดิม) — ใช้พรีวิว
   imageBase64: string | null; // รูปใหม่ (ถ้ามี)
   previewUrl: string | null; // แสดง preview (รูปใหม่ หรือรูปเดิมตอนแก้ไข)
   removeBg: boolean; // ตัดพื้นหลังอัตโนมัติ
@@ -38,6 +52,10 @@ const EMPTY: FormState = {
   price: '',
   buyUrl: '',
   style: '',
+  gender: 'unisex',
+  fit: 'auto',
+  scale: 1,
+  aspect: undefined,
   imageBase64: null,
   previewUrl: null,
   removeBg: true,
@@ -54,6 +72,29 @@ export default function AdminApp() {
   const formTopRef = useRef<HTMLDivElement>(null);
 
   const isEditing = form.editingId !== null;
+
+  // ชิ้นอ้างอิงหมวดอื่น (ตัวแรกของแต่ละหมวด ที่ไม่ใช่ชิ้นที่กำลังแก้) — ไว้เทียบสัดส่วนในพรีวิว
+  const references = useMemo(() => {
+    const map: Partial<Record<Category, PreviewGarment>> = {};
+    for (const cat of CATEGORIES) {
+      const ref = products.find((p) => p.category === cat && p.id !== form.editingId);
+      if (ref)
+        map[cat] = {
+          imageUrl: `/src/assets/${ref.image}`,
+          fit: ref.fit,
+          aspect: ref.aspect,
+          scale: ref.scale,
+        };
+    }
+    return map;
+  }, [products, form.editingId]);
+
+  const editingGarment: PreviewGarment = {
+    imageUrl: form.previewUrl || undefined,
+    fit: form.fit,
+    aspect: form.aspect,
+    scale: form.scale,
+  };
 
   async function refresh() {
     setLoading(true);
@@ -100,6 +141,10 @@ export default function AdminApp() {
       price: String(p.price),
       buyUrl: p.buyUrl || '',
       style: p.style || '',
+      gender: p.gender || 'unisex',
+      fit: p.fit || 'auto',
+      scale: p.scale ?? 1,
+      aspect: p.aspect,
       imageBase64: null,
       previewUrl: p.image ? `/src/assets/${p.image}` : null,
       removeBg: true,
@@ -128,6 +173,9 @@ export default function AdminApp() {
           price: priceNum,
           buyUrl: form.buyUrl.trim(),
           style: form.style,
+          gender: form.gender,
+          fit: form.fit,
+          scale: form.scale,
           ...(form.imageBase64 ? { imageBase64: form.imageBase64, removeBg } : {}),
         });
         flash('บันทึกการแก้ไขแล้ว ✓');
@@ -138,6 +186,9 @@ export default function AdminApp() {
           price: priceNum,
           buyUrl: form.buyUrl.trim(),
           style: form.style,
+          gender: form.gender,
+          fit: form.fit,
+          scale: form.scale,
           imageBase64: form.imageBase64!,
           removeBg,
         });
@@ -188,7 +239,7 @@ export default function AdminApp() {
           {/* ── ฟอร์มเพิ่ม/แก้ไข ── */}
           <div
             ref={formTopRef}
-            className="self-start rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:sticky lg:top-8"
+            className="self-start rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto"
           >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-bold">{isEditing ? 'แก้ไขสินค้า' : 'เพิ่มสินค้าใหม่'}</h2>
@@ -261,6 +312,46 @@ export default function AdminApp() {
                 </label>
               </div>
 
+              {/* พรีวิวบนมาสคอต + เส้นปะไกด์ไลน์ + ปรับขนาด (โผล่เมื่อมีรูป) */}
+              {form.previewUrl && (
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-neutral-600">
+                    พรีวิวบนมาสคอต{' '}
+                    <span className="font-normal text-neutral-400">
+                      (เส้นปะ = ไกด์ไลน์ · ชิ้นอื่นจาง ๆ ไว้เทียบ)
+                    </span>
+                  </label>
+                  <FittingPreview
+                    category={form.category}
+                    editing={editingGarment}
+                    references={references}
+                  />
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="whitespace-nowrap text-xs font-semibold text-neutral-600">
+                      ขนาด {Math.round(form.scale * 100)}%
+                    </span>
+                    <input
+                      type="range"
+                      min={0.5}
+                      max={1.3}
+                      step={0.02}
+                      value={form.scale}
+                      onChange={(e) => setForm((f) => ({ ...f, scale: Number(e.target.value) }))}
+                      className="flex-1 accent-neutral-900"
+                    />
+                    {form.scale !== 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, scale: 1 }))}
+                        className="whitespace-nowrap text-xs text-neutral-500 underline"
+                      >
+                        รีเซ็ต
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* 2. ประเภท */}
               <div>
                 <label className="mb-1 block text-xs font-semibold text-neutral-600">
@@ -274,6 +365,40 @@ export default function AdminApp() {
                   {CATEGORIES.map((c) => (
                     <option key={c} value={c}>
                       {CATEGORY_LABEL[c]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* ทรง — เฉพาะท่อนล่าง (กางเกง/กระโปรง/ขาสั้น) */}
+              {form.category === 'pants' && (
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-neutral-600">
+                    ทรง <span className="font-normal text-neutral-400">(กางเกงยาว / กระโปรง-ขาสั้น)</span>
+                  </label>
+                  <select
+                    className={inputCls}
+                    value={form.fit}
+                    onChange={(e) => setForm((f) => ({ ...f, fit: e.target.value as Fit | 'auto' }))}
+                  >
+                    <option value="auto">อัตโนมัติ (เดาจากรูป)</option>
+                    <option value="long">{FIT_LABEL.long} — กางเกงขายาว</option>
+                    <option value="short">{FIT_LABEL.short} — กระโปรง/ขาสั้น</option>
+                  </select>
+                </div>
+              )}
+
+              {/* เพศ */}
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-neutral-600">เพศ</label>
+                <select
+                  className={inputCls}
+                  value={form.gender}
+                  onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value as Gender }))}
+                >
+                  {(['unisex', 'male', 'female'] as Gender[]).map((g) => (
+                    <option key={g} value={g}>
+                      {GENDER_LABEL[g]}
                     </option>
                   ))}
                 </select>
@@ -394,6 +519,21 @@ export default function AdminApp() {
                               </p>
                               <p className="text-xs text-neutral-500">฿{p.price}</p>
                               <div className="mt-1 flex flex-wrap items-center gap-1">
+                                {p.gender && p.gender !== 'unisex' && (
+                                  <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-600">
+                                    {GENDER_LABEL[p.gender]}
+                                  </span>
+                                )}
+                                {p.fit === 'short' && (
+                                  <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-600">
+                                    ทรง{FIT_LABEL.short}
+                                  </span>
+                                )}
+                                {p.scale && p.scale !== 1 && (
+                                  <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] text-purple-600">
+                                    {Math.round(p.scale * 100)}%
+                                  </span>
+                                )}
                                 {p.style && (
                                   <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-600">
                                     {styleLabel(p.style)}

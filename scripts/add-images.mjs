@@ -101,9 +101,17 @@ for (const [folder, cat] of Object.entries(FOLDERS)) {
     // เก็บเป็น WebP q85 — คมชัดแต่เล็กกว่า PNG ~10 เท่า (โหลด/ปัดลื่นกว่า)
     await sharp(trimmed).webp({ quality: 85, effort: 4 }).toFile(path.join(outDir, `${num}.webp`));
 
+    // ทรงท่อนล่าง + สัดส่วนรูป (เฉพาะ pants) — ใช้เดาทรงและสมดุลขนาดทรงสั้น
+    let autoFit, aspect;
+    if (cat === 'pants') {
+      const meta = await sharp(trimmed).metadata();
+      aspect = Math.round((meta.width / meta.height) * 100) / 100;
+      autoFit = aspect > 0.85 ? 'short' : 'long';
+    }
+
     const idx = store.products.findIndex((x) => x.id === id);
     if (idx >= 0) {
-      // อัปเดตของเดิม — คง buyUrl / style ไว้
+      // อัปเดตของเดิม — คง buyUrl / style / fit(override) ไว้
       const prev = store.products[idx];
       store.products[idx] = {
         ...prev,
@@ -112,6 +120,7 @@ for (const [folder, cat] of Object.entries(FOLDERS)) {
         price: p.price,
         color,
         image,
+        ...(cat === 'pants' ? { fit: prev.fit || autoFit, aspect } : {}),
       };
       updated += 1;
     } else {
@@ -124,6 +133,7 @@ for (const [folder, cat] of Object.entries(FOLDERS)) {
         image,
         buyUrl: '',
         style: '',
+        ...(autoFit ? { fit: autoFit, aspect } : {}),
       });
       added += 1;
     }

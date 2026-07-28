@@ -1,5 +1,5 @@
 import type { Category, ClothingItem } from '../types';
-import { CATEGORY_LABEL, GARMENT_BG_POSITION, GARMENT_BG_SIZE } from '../types';
+import { CATEGORY_LABEL, GARMENT_ORIGIN, onBodyBackground, onBodyScale } from '../types';
 import { EyeOffIcon } from './icons';
 
 interface ClothingLayerProps {
@@ -55,9 +55,11 @@ export default function ClothingLayer({
         boxShadow: selected ? 'inset 0 0 0 4px #fff, inset 0 0 0 6px rgba(0,0,0,0.3)' : undefined,
         backgroundColor: item.imageUrl ? undefined : item.color,
         backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : undefined,
-        backgroundSize: item.imageUrl ? GARMENT_BG_SIZE[category] : 'cover',
+        backgroundSize: item.imageUrl ? onBodyBackground(category, item.fit, item.aspect).size : 'cover',
         backgroundRepeat: 'no-repeat',
-        backgroundPosition: item.imageUrl ? GARMENT_BG_POSITION[category] : 'center',
+        backgroundPosition: item.imageUrl ? onBodyBackground(category, item.fit, item.aspect).position : 'center',
+        transform: onBodyScale(item.scale),
+        transformOrigin: GARMENT_ORIGIN[category],
       }}
     />
   );

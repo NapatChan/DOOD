@@ -1,6 +1,6 @@
 import type { MotionValue } from 'framer-motion';
 import type { Category, ClothingItem } from '../types';
-import { CATEGORIES } from '../types';
+import { CATEGORIES, LAYER_GROW } from '../types';
 import ClothingLayer from './ClothingLayer';
 import SwipeableLayer from './SwipeableLayer';
 
@@ -18,15 +18,6 @@ interface MascotProps {
   onSelectLayer: (category: Category) => void;
   onToggleHidden: (category: Category) => void;
 }
-
-// สัดส่วนความสูงแบบ "คนใส่ชุด"
-// คำนวณจาก aspect หลัง trim ให้ความกว้างที่ render ออกมาเป็น หัว<สะโพก<ไหล่
-// (เสื้อไหล่กว้างสุด, กางเกงสะโพกแคบลง, หมวกหัวแคบสุด)
-const LAYER_GROW: Record<Category, number> = {
-  hat: 0.8,
-  top: 2.0,
-  pants: 3.0,
-};
 
 // มาสคอต placeholder — กล่องสีเทาโค้ง ยืดเต็มความสูงที่มี วางเลเยอร์ 3 ชั้น
 // เลเยอร์ที่เลือกอยู่ = ปัดได้ (SwipeableLayer), ที่เหลือ = แตะเพื่อเลือก

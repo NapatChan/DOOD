@@ -22,6 +22,66 @@ export const GARMENT_BG_SIZE: Record<Category, string> = {
   pants: 'contain',
 };
 
+// ทรงของท่อนล่าง — ยาว (กางเกงขายาว) | สั้น (กระโปรง/ขาสั้น)
+// รูปทรงสั้นมักกว้างกว่าสูง ถ้า contain จะบานเต็มคอลัมน์ ใหญ่กว่าลำตัว
+export type Fit = 'long' | 'short';
+export const FIT_LABEL: Record<Fit, string> = { long: 'ยาว', short: 'สั้น' };
+
+// ความสูงของท่อนล่าง "ทรงสั้น" บนมาสคอต — คุมด้วยความสูง (auto กว้าง) เหมือนชิ้นอื่นที่ใช้ contain
+// สมดุลอัตโนมัติตามทรง: รูปยิ่งบานกว้าง (aspect สูง) เรนเดอร์ยิ่งเตี้ยลง
+// เพื่อให้ "ความกว้างรวม" ของทุกชิ้นใกล้กัน = สมส่วนกับเสื้อเท่ากัน ไม่ว่าทรงตรงหรือทรงบาน
+//   height% = K / aspect  (K≈48: ขาสั้น aspect~1.4 → 34% · กระโปรงบาน aspect~1.63 → ~29%)
+//   clamp กันสุดโต่งสำหรับรูปทรงแปลก ๆ
+const SHORT_FILL_K = 48;
+const SHORT_FILL_MIN = 24;
+const SHORT_FILL_MAX = 38;
+function shortBottomHeightPct(aspect?: number): number {
+  if (!aspect || aspect <= 0) return 34; // ไม่รู้สัดส่วน → ค่ากลาง
+  return Math.min(SHORT_FILL_MAX, Math.max(SHORT_FILL_MIN, SHORT_FILL_K / aspect));
+}
+
+// พื้นหลังตอน "สวมบนตัวมาสคอต" (ต่างจากรูปย่อในคลังที่ใช้ contain เสมอ)
+// ท่อนล่างทรงสั้นเรนเดอร์แคบลง ไม่ให้บานเต็มจอเหมือน contain — และสมดุลตามทรง (ดู aspect)
+export function onBodyBackground(
+  category: Category,
+  fit?: Fit,
+  aspect?: number,
+): { size: string; position: string } {
+  if (category === 'pants' && fit === 'short') {
+    return { size: `auto ${shortBottomHeightPct(aspect).toFixed(1)}%`, position: 'center top' };
+  }
+  return { size: GARMENT_BG_SIZE[category], position: GARMENT_BG_POSITION[category] };
+}
+
+// จุดยึดตอนย่อ/ขยายรายชิ้น — ให้รอยต่อไม่ขยับ (หมวก↑คอ, เอว↓ ยึดใต้เสื้อ)
+export const GARMENT_ORIGIN: Record<Category, string> = {
+  hat: 'center bottom',
+  top: 'center',
+  pants: 'center top',
+};
+// transform ปรับขนาดรายชิ้น — scale 1/ไม่ระบุ = ไม่แตะ (คงลุคเดิม)
+export function onBodyScale(scale?: number): string | undefined {
+  return !scale || scale === 1 ? undefined : `scale(${scale})`;
+}
+
+// สัดส่วนความสูงแบบ "คนใส่ชุด" (หัว < ไหล่ < สะโพก) — ใช้ทั้งมาสคอตหลักและหน้าดูเต็ม
+export const LAYER_GROW: Record<Category, number> = {
+  hat: 0.8,
+  top: 2.0,
+  pants: 3.0,
+};
+
+// เพศของสินค้า — unisex = ใส่ได้ทั้งชาย/หญิง (โชว์ในทุกฟิลเตอร์)
+export type Gender = 'male' | 'female' | 'unisex';
+export const GENDER_LABEL: Record<Gender, string> = {
+  male: 'ชาย',
+  female: 'หญิง',
+  unisex: 'ทุกเพศ',
+};
+
+// ตัวเลือกฟิลเตอร์ฝั่งลูกค้า (all = ไม่กรอง)
+export type GenderFilter = 'all' | 'male' | 'female';
+
 export interface ClothingItem {
   id: string;
   category: Category;
@@ -31,6 +91,10 @@ export interface ClothingItem {
   imageUrl?: string; // URL รูป PNG โปร่ง (ตอนนี้จาก assets, อนาคตจาก backend)
   buyUrl?: string; // ลิงก์สั่งซื้อชิ้นนี้ (ไม่บังคับ)
   style?: string; // id สไตล์ (ดู src/config/styles.ts)
+  gender?: Gender; // เพศ (ไม่ระบุ = unisex)
+  fit?: Fit; // ทรงท่อนล่าง (ไม่ระบุ = long)
+  aspect?: number; // สัดส่วนรูป กว้าง/สูง — ใช้สมดุลขนาดท่อนล่างทรงสั้นตามทรง
+  scale?: number; // ตัวคูณขนาดรายชิ้น (ปรับในแอดมิน, ไม่ระบุ = 1 = ขนาดปกติ)
 }
 
 export interface WardrobeState {

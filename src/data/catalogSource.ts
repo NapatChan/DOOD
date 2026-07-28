@@ -7,7 +7,7 @@
 // │ ที่เหลือทั้งแอปไม่ต้องแก้ เพราะเรียกผ่าน getCatalog() แบบ async อยู่แล้ว │
 // └─────────────────────────────────────────────────────────────────┘
 import productsData from '../../catalog/products.json';
-import { CATEGORIES, type Category, type ClothingItem } from '../types';
+import { CATEGORIES, type Category, type ClothingItem, type Fit, type Gender } from '../types';
 import { imageUrlByPath } from './productImages';
 
 interface RawProduct {
@@ -19,6 +19,10 @@ interface RawProduct {
   image?: string;
   buyUrl?: string;
   style?: string;
+  gender?: Gender;
+  fit?: Fit;
+  aspect?: number;
+  scale?: number;
 }
 
 // map raw → ClothingItem (ผูก URL รูปจาก path)
@@ -32,6 +36,10 @@ function toItem(p: RawProduct): ClothingItem {
     imageUrl: p.image ? imageUrlByPath[p.image] : undefined,
     buyUrl: p.buyUrl || undefined,
     style: p.style || undefined,
+    gender: p.gender || 'unisex', // สินค้าเดิมที่ไม่มีค่า → unisex (โชว์ทุกฟิลเตอร์)
+    fit: p.fit || undefined, // ไม่ระบุ = long
+    aspect: p.aspect || undefined,
+    scale: p.scale || undefined,
   };
 }
 

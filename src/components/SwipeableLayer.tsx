@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, type MotionValue } from 'framer-motion';
 import type { Category, ClothingItem } from '../types';
-import { CATEGORY_LABEL, GARMENT_BG_POSITION, GARMENT_BG_SIZE } from '../types';
+import { CATEGORY_LABEL, GARMENT_ORIGIN, onBodyBackground, onBodyScale } from '../types';
 import { EyeIcon, EyeOffIcon } from './icons';
 
 interface SwipeableLayerProps {
@@ -116,16 +116,23 @@ export default function SwipeableLayer({
             exit="exit"
             transition={{ type: 'spring', stiffness: 500, damping: 40, mass: 0.6 }}
             className="absolute inset-0"
-            style={{
-              // มีรูป (PNG โปร่ง) → วางเสื้อทั้งตัวไว้กลาง ไม่ครอป, พื้นหลังโปร่งเห็นฉากมาสคอต
-              // ไม่มีรูป → บล็อกสีเต็มพื้นเหมือนเดิม
-              backgroundColor: item.imageUrl ? undefined : item.color,
-              backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : undefined,
-              backgroundSize: item.imageUrl ? GARMENT_BG_SIZE[category] : 'cover',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: item.imageUrl ? GARMENT_BG_POSITION[category] : 'center',
-            }}
-          />
+          >
+            {/* background + ปรับขนาดรายชิ้น อยู่ inner div แยกจาก transform ของ framer (x/slide) */}
+            <div
+              className="absolute inset-0"
+              style={{
+                // มีรูป (PNG โปร่ง) → วางเสื้อทั้งตัวไว้กลาง ไม่ครอป, พื้นหลังโปร่งเห็นฉากมาสคอต
+                // ไม่มีรูป → บล็อกสีเต็มพื้นเหมือนเดิม
+                backgroundColor: item.imageUrl ? undefined : item.color,
+                backgroundImage: item.imageUrl ? `url(${item.imageUrl})` : undefined,
+                backgroundSize: item.imageUrl ? onBodyBackground(category, item.fit, item.aspect).size : 'cover',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: item.imageUrl ? onBodyBackground(category, item.fit, item.aspect).position : 'center',
+                transform: onBodyScale(item.scale),
+                transformOrigin: GARMENT_ORIGIN[category],
+              }}
+            />
+          </motion.div>
         </AnimatePresence>
       </motion.div>
 

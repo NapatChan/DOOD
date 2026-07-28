@@ -1,8 +1,11 @@
 import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Collection from './components/Collection';
+import GenderMenu from './components/GenderMenu';
+import GenderTabs from './components/GenderTabs';
 import LayerSelector from './components/LayerSelector';
 import LookBar from './components/LookBar';
+import LookPreview from './components/LookPreview';
 import Mascot from './components/Mascot';
 import MobilePriceSheet from './components/MobilePriceSheet';
 import NavArrow from './components/NavArrows';
@@ -24,6 +27,8 @@ export default function App() {
     itemsById,
     totalPrice,
     counts,
+    genderFilter,
+    setGenderFilter,
     selectLayer,
     cycleLayer,
     changeItem,
@@ -37,6 +42,7 @@ export default function App() {
   // คอลเลกชันลุคที่บันทึกไว้
   const { looks, count, save, remove } = useSavedLooks();
   const [collectionOpen, setCollectionOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // gesture ปัดแนวนอน "ทั่วทั้งจอ" — เลื่อนชั้นที่เลือกตามนิ้ว แล้วสลับชิ้นตอนปล่อย
   const dragX = useMotionValue(0);
@@ -220,20 +226,13 @@ export default function App() {
           <p className="mt-1 text-[11px] leading-none text-neutral-500">Make it your style</p>
         </div>
         <div className="flex items-center gap-2">
+          <GenderMenu value={genderFilter} onChange={setGenderFilter} />
           <BagButton count={count} onClick={() => setCollectionOpen(true)} size={44} />
-          <button
-            type="button"
-            onClick={shuffle}
-            aria-label="สุ่มลุค"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-lg shadow-sm ring-1 ring-black/5 transition active:scale-90"
-          >
-            🎲
-          </button>
         </div>
       </header>
 
-      {/* คอลัมน์เวที: มาสคอตเต็มจอ */}
-      <main className="flex w-full flex-1 flex-col items-center lg:w-auto lg:flex-none lg:justify-center lg:px-3">
+      {/* คอลัมน์เวที: มาสคอตเต็มจอ (เว้นล่างให้ขากางเกงพ้นแถบราคา handle บนมือถือ) */}
+      <main className="flex w-full flex-1 flex-col items-center pb-[calc(env(safe-area-inset-bottom)+34px)] lg:w-auto lg:flex-none lg:justify-center lg:px-3 lg:pb-0">
         {/* เวทีทั้งจอ = พื้นที่รับ gesture ปัด (ปัดตรงไหนก็ได้) */}
         <motion.div
           onPointerDownCapture={() => {
@@ -243,6 +242,25 @@ export default function App() {
           onPanEnd={handlePanEnd}
           className="relative flex w-full flex-1 touch-none items-stretch justify-center lg:flex-none lg:items-center lg:gap-4"
         >
+          {/* ปุ่มดูชุดเต็ม — ลอยมุมบนซ้ายของเวที (มือถือเท่านั้น; เดสก์ท็อปอยู่แถบคอนโทรล) */}
+          <button
+            type="button"
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            onClick={() => setPreviewOpen(true)}
+            aria-label="ดูชุดเต็ม"
+            className="absolute left-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow ring-1 ring-black/10 transition active:scale-90 lg:hidden"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
           {/* ลูกศร: desktop เท่านั้น — มือถือปัดตรงไหนก็ได้อยู่แล้ว */}
           <div className="hidden lg:static lg:block">
             <NavArrow direction="prev" disabled={layerHidden} onClick={() => changeItem(-1)} />
@@ -282,6 +300,7 @@ export default function App() {
           <h1 className="text-6xl font-black tracking-tight text-neutral-800">DOOD</h1>
           <p className="mt-3 text-neutral-500">Make it your style</p>
         </div>
+        <GenderTabs value={genderFilter} onChange={setGenderFilter} />
         <div className="flex items-center gap-3">
           <LayerSelector selectedLayer={selectedLayer} onSelectLayer={selectLayer} />
           <button
@@ -293,11 +312,23 @@ export default function App() {
             🎲
           </button>
           <BagButton count={count} onClick={() => setCollectionOpen(true)} size={48} />
+          <ExpandButton onClick={() => setPreviewOpen(true)} size={48} />
         </div>
         <div className="w-full">
           <LookBar totalPrice={totalPrice} onWant={handleWant} />
         </div>
       </footer>
+
+      {/* ปุ่มสุ่มลุค — ลอยมุมล่างขวา (มือถือเท่านั้น) กดถนัดนิ้วโป้ง เหนือแถบราคา */}
+      <button
+        type="button"
+        onClick={shuffle}
+        aria-label="สุ่มลุค"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 42px)' }}
+        className="fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90 lg:hidden"
+      >
+        🎲
+      </button>
 
       {/* แถบราคาบนมือถือ — ซ่อน/โผล่ด้วยการลากขึ้น */}
       <MobilePriceSheet
@@ -321,8 +352,38 @@ export default function App() {
         onApply={handleApplyLook}
       />
 
+      <LookPreview
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        selectedItems={selectedItems}
+        hidden={state.hidden}
+      />
+
       <Toast message={toast} />
     </div>
+  );
+}
+
+// ปุ่มดูชุดเต็ม ⤢ (เปิด LookPreview)
+function ExpandButton({ onClick, size }: { onClick: () => void; size: number }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="ดูชุดเต็ม"
+      style={{ height: size, width: size }}
+      className="flex shrink-0 items-center justify-center rounded-full bg-white text-neutral-700 shadow-sm ring-1 ring-black/5 transition active:scale-90"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path
+          d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
   );
 }
 

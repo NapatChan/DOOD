@@ -1,10 +1,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getCatalog } from '../data/catalogSource';
-import { CATEGORIES, type Category, type ClothingItem, type WardrobeState } from '../types';
+import {
+  CATEGORIES,
+  type Category,
+  type ClothingItem,
+  type Gender,
+  type GenderFilter,
+  type WardrobeState,
+} from '../types';
 
 // วน index ให้อยู่ในช่วง [0, len) เสมอ (รองรับ loop ทั้งสองทิศ)
 function wrap(index: number, len: number): number {
   return ((index % len) + len) % len;
+}
+
+const placeholder = (cat: Category): ClothingItem => ({
+  id: `${cat}-empty`,
+  category: cat,
+  name: '—',
+  price: 0,
+  color: '#d4d4d4',
+});
+
+// สินค้าชิ้นนี้ตรงกับฟิลเตอร์เพศไหม (ชาย = ชาย+unisex, หญิง = หญิง+unisex, ทั้งหมด = ทุกชิ้น)
+function matchesGender(g: Gender | undefined, filter: GenderFilter): boolean {
+  if (filter === 'all') return true;
+  const gender = g ?? 'unisex';
+  return gender === filter || gender === 'unisex';
 }
 
 export function useWardrobe() {
@@ -27,13 +49,29 @@ export function useWardrobe() {
     hidden: { hat: false, top: false, pants: false }, // เริ่มมาใส่ครบทุกชั้น
   });
 
+  // ฟิลเตอร์เพศฝั่งลูกค้า — default 'all' (ไม่มีหน้าถาม เข้ามาปัดได้เลย)
+  const [genderFilter, setGenderFilter] = useState<GenderFilter>('all');
+
+  // รายการสินค้า "หลังกรองเพศ" — ทุกอย่างที่ปัด/โชว์บนมาสคอตใช้ตัวนี้
+  // หมวดไหนกรองแล้วว่าง → ใส่ตัวสำรอง '—' กันแอปพัง (index ใช้ wrap เลยไม่หลุด)
+  const filteredItems = useMemo(() => {
+    if (!items) return null;
+    return CATEGORIES.reduce(
+      (acc, cat) => {
+        const list = items[cat].filter((it) => matchesGender(it.gender, genderFilter));
+        acc[cat] = list.length > 0 ? list : [placeholder(cat)];
+        return acc;
+      },
+      {} as Record<Category, ClothingItem[]>,
+    );
+  }, [items, genderFilter]);
+
   // Preload รูปชิ้น "ก่อนหน้า/ถัดไป" ของทุกเลเยอร์ล่วงหน้า (ตาม planning §6)
-  // ให้ปัดแล้วเปลี่ยนทันที ไม่เห็นรูปวูบตอนโหลด — โหลดแค่ 6 รูป จึงเบา แม้คลังโต
   const preloadedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!items) return;
+    if (!filteredItems) return;
     CATEGORIES.forEach((cat) => {
-      const list = items[cat];
+      const list = filteredItems[cat];
       const i = wrap(state.currentIndex[cat], list.length);
       [i - 1, i + 1].forEach((k) => {
         const url = list[wrap(k, list.length)]?.imageUrl;
@@ -44,7 +82,7 @@ export function useWardrobe() {
         }
       });
     });
-  }, [items, state.currentIndex]);
+  }, [filteredItems, state.currentIndex]);
 
   const selectLayer = useCallback((layer: Category) => {
     setState((s) => ({ ...s, selectedLayer: layer }));
@@ -63,41 +101,41 @@ export function useWardrobe() {
   // ถ้าเลเยอร์ถูกปิดตาไว้ (ไม่ใส่) จะปัดไม่ได้ — ต้องกดตาเปิดก่อน
   const changeItem = useCallback(
     (delta: number) => {
-      if (!items) return;
+      if (!filteredItems) return;
       setState((s) => {
         const layer = s.selectedLayer;
         if (s.hidden[layer]) return s;
-        const len = items[layer].length;
+        const len = filteredItems[layer].length;
         const next = wrap(s.currentIndex[layer] + delta, len);
         return { ...s, currentIndex: { ...s.currentIndex, [layer]: next } };
       });
     },
-    [items],
+    [filteredItems],
   );
 
   // สุ่มลุคใหม่ — ข้ามชั้นที่ปิดตาไว้ (ไม่ดึงกลับมา) และเลี่ยงไม่ให้สุ่มได้ชิ้นเดิม
   const shuffle = useCallback(() => {
-    if (!items) return;
+    if (!filteredItems) return;
     setState((s) => {
       const next = { ...s.currentIndex };
       CATEGORIES.forEach((cat) => {
         if (s.hidden[cat]) return;
-        const len = items[cat].length;
+        const len = filteredItems[cat].length;
         let pick = Math.floor(Math.random() * len);
-        if (len > 1 && pick === s.currentIndex[cat]) pick = wrap(pick + 1, len);
+        if (len > 1 && pick === wrap(s.currentIndex[cat], len)) pick = wrap(pick + 1, len);
         next[cat] = pick;
       });
       return { ...s, currentIndex: next };
     });
-  }, [items]);
+  }, [filteredItems]);
 
   // ปิด/เปิดตา (ใส่/ไม่ใส่) ชั้นนั้น
   const toggleHidden = useCallback((layer: Category) => {
     setState((s) => ({ ...s, hidden: { ...s.hidden, [layer]: !s.hidden[layer] } }));
   }, []);
 
-  // ใส่ "ลุคที่บันทึกไว้" กลับขึ้นมาสคอต — เซ็ต index + สถานะปิดตา (ไม่ใส่) ให้ตรงลุค
-  // ชิ้นที่ถูกลบไปแล้ว (หา id ไม่เจอ) จะข้าม คงชิ้นเดิมของหมวดนั้นไว้ แล้วรายงานกลับ
+  // ใส่ "ลุคที่บันทึกไว้" กลับขึ้นมาสคอต — รีเซ็ตฟิลเตอร์เป็น 'ทั้งหมด' ก่อน
+  // (ลุคอาจมีชิ้นที่ถูกฟิลเตอร์ซ่อนอยู่) แล้วเซ็ต index + สถานะปิดตา ให้ตรงลุค
   const applyLook = useCallback(
     (
       lookItems: Record<Category, string>,
@@ -111,6 +149,7 @@ export function useWardrobe() {
         if (idx >= 0) found[cat] = idx;
         else if (!lookHidden[cat]) missing.push(cat); // ชิ้นที่ไม่ใส่อยู่แล้ว ไม่นับว่า "หาย"
       });
+      setGenderFilter('all'); // ให้เห็นทุกชิ้นในลุคแน่ ๆ
       setState((s) => {
         const nextIndex = { ...s.currentIndex };
         (Object.keys(found) as Category[]).forEach((cat) => {
@@ -123,18 +162,18 @@ export function useWardrobe() {
     [items],
   );
 
-  // ชิ้นที่กำลังสวมอยู่ของแต่ละหมวด (null ระหว่างโหลด)
+  // ชิ้นที่กำลังสวมอยู่ของแต่ละหมวด (null ระหว่างโหลด) — จากรายการที่กรองแล้ว
   const selectedItems = useMemo(() => {
-    if (!items) return null;
+    if (!filteredItems) return null;
     return CATEGORIES.reduce(
       (acc, cat) => {
-        const list = items[cat];
+        const list = filteredItems[cat];
         acc[cat] = list[wrap(state.currentIndex[cat], list.length)];
         return acc;
       },
       {} as Record<Category, ClothingItem>,
     );
-  }, [items, state.currentIndex]);
+  }, [filteredItems, state.currentIndex]);
 
   // ราคารวม = derive จาก state (ไม่เก็บซ้ำ) — ไม่คิดชั้นที่ปิดตา (ไม่ใส่)
   const totalPrice = useMemo(
@@ -149,6 +188,7 @@ export function useWardrobe() {
   );
 
   // แผนที่สินค้าตาม id — ใช้แปลง "ลุคที่บันทึกไว้" (เก็บเป็น id) กลับเป็นข้อมูลจริง
+  // ใช้คลังเต็ม (ไม่กรอง) เพื่อให้ลุคที่บันทึกไว้ resolve ได้ทุกเพศ
   const itemsById = useMemo(() => {
     const map: Record<string, ClothingItem> = {};
     if (items) {
@@ -157,17 +197,17 @@ export function useWardrobe() {
     return map;
   }, [items]);
 
-  // จำนวนตัวเลือกของแต่ละหมวด (ใช้ทำ dots บอกตำแหน่ง)
+  // จำนวนตัวเลือกของแต่ละหมวด (ใช้ทำ dots บอกตำแหน่ง) — ตามที่กรอง
   const counts = useMemo(
     () =>
       CATEGORIES.reduce(
         (acc, cat) => {
-          acc[cat] = items ? items[cat].length : 0;
+          acc[cat] = filteredItems ? filteredItems[cat].length : 0;
           return acc;
         },
         {} as Record<Category, number>,
       ),
-    [items],
+    [filteredItems],
   );
 
   return {
@@ -177,6 +217,8 @@ export function useWardrobe() {
     itemsById,
     totalPrice,
     counts,
+    genderFilter,
+    setGenderFilter,
     selectLayer,
     cycleLayer,
     changeItem,

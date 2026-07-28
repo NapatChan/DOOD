@@ -21,6 +21,30 @@ const ASSETS = path.join(ROOT, 'src/assets');
 // category → โฟลเดอร์ใน src/assets
 const FOLDER = { hat: 'hats', top: 'shirts', pants: 'pants' };
 const CATEGORIES = Object.keys(FOLDER);
+const GENDERS = ['male', 'female', 'unisex'];
+const normGender = (g) => (GENDERS.includes(g) ? g : 'unisex');
+// ตัวคูณขนาดรายชิ้น — จำกัดช่วง 0.3–2, ปัด 2 ตำแหน่ง (undefined/1 = ปกติ)
+function normScale(s) {
+  const n = Number(s);
+  if (!Number.isFinite(n)) return undefined;
+  return Math.round(Math.min(2, Math.max(0.3, n)) * 100) / 100;
+}
+
+// สัดส่วนรูป กว้าง/สูง (ปัด 2 ตำแหน่ง) — ใช้สมดุลขนาดท่อนล่างทรงสั้น
+async function imageAspect(buffer) {
+  const m = await sharp(buffer).metadata();
+  return Math.round((m.width / m.height) * 100) / 100;
+}
+// ทรงท่อนล่าง: เดาจากสัดส่วนรูป (กว้างกว่าสูง = กระโปรง/ขาสั้น = short)
+async function autoFit(buffer) {
+  return (await imageAspect(buffer)) > 0.85 ? 'short' : 'long';
+}
+// คืนทรงของสินค้า — เฉพาะหมวด pants เท่านั้น (override 'long'/'short' > auto)
+async function resolveFit(buffer, category, override) {
+  if (category !== 'pants') return undefined;
+  if (override === 'long' || override === 'short') return override;
+  return autoFit(buffer); // 'auto' หรือไม่ระบุ → เดาเอง
+}
 
 // ---------- helpers: อ่าน/เขียน products.json ----------
 function readStore() {
@@ -175,7 +199,13 @@ export function adminApiPlugin() {
               image,
               buyUrl: (body.buyUrl || '').trim(),
               style: body.style || '',
+              gender: normGender(body.gender),
             };
+            const fit = await resolveFit(processed.buffer, body.category, body.fit);
+            if (fit) product.fit = fit;
+            if (body.category === 'pants') product.aspect = await imageAspect(processed.buffer);
+            const scale = normScale(body.scale);
+            if (scale && scale !== 1) product.scale = scale;
             store.products.push(product);
             writeStore(store);
             return sendJson(res, 201, { product });
@@ -207,6 +237,12 @@ export function adminApiPlugin() {
               if (body.price !== undefined) updated.price = Number(body.price);
               if (body.buyUrl !== undefined) updated.buyUrl = String(body.buyUrl).trim();
               if (body.style !== undefined) updated.style = body.style || '';
+              if (body.gender !== undefined) updated.gender = normGender(body.gender);
+              if (body.scale !== undefined) {
+                const s = normScale(body.scale);
+                if (s && s !== 1) updated.scale = s;
+                else delete updated.scale;
+              }
 
               const newCategory = body.category && body.category !== current.category ? body.category : null;
 
@@ -233,6 +269,24 @@ export function adminApiPlugin() {
                   if (buf) updated.image = await writeImageFile(category, id, buf);
                 }
                 updated.category = category;
+              }
+
+              // ทรงท่อนล่าง — override ตรง ๆ, 'auto'/รูปใหม่/ย้ายมาเป็น pants → เดาจากรูปปัจจุบัน
+              if (updated.category === 'pants') {
+                if (body.fit === 'long' || body.fit === 'short') {
+                  updated.fit = body.fit;
+                } else if (body.fit === 'auto' || body.imageBase64 || newCategory) {
+                  const abs = path.join(ASSETS, updated.image);
+                  if (fs.existsSync(abs)) updated.fit = await autoFit(fs.readFileSync(abs));
+                }
+                // สัดส่วนรูป — คำนวณใหม่เมื่อรูป/หมวดเปลี่ยน หรือยังไม่เคยมี
+                if (body.imageBase64 || newCategory || updated.aspect === undefined) {
+                  const abs = path.join(ASSETS, updated.image);
+                  if (fs.existsSync(abs)) updated.aspect = await imageAspect(fs.readFileSync(abs));
+                }
+              } else {
+                delete updated.fit;
+                delete updated.aspect;
               }
 
               store.products[idx] = updated;
