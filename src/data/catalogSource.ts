@@ -1,23 +1,31 @@
 // ┌─────────────────────────────────────────────────────────────────┐
 // │ จุดดึงข้อมูลสินค้า "จุดเดียว" ของทั้งแอป (read path)                │
 // │                                                                   │
-// │ ตอนนี้: อ่านจาก catalog/products.json ที่ bundle มากับแอป (โหลดทันที) │
-// │ อนาคต (มี backend): เปลี่ยนแค่ไส้ในของ getCatalog() เป็น            │
-// │   const res = await fetch('/api/products'); ...                   │
-// │ ที่เหลือทั้งแอปไม่ต้องแก้ เพราะเรียกผ่าน getCatalog() แบบ async อยู่แล้ว │
+// │ อ่านจาก Supabase (public read + RLS) แบบ cache 3 ชั้น:            │
+// │   ① localStorage cache → คืนทันที (ไม่รอเน็ต)                      │
+// │   ② fetch Supabase → อัปเดต cache ไว้ให้รอบหน้า                    │
+// │   ③ snapshot ที่ bundle มา (catalog/products.json) → fallback สุดท้าย │
+// │      (Supabase ล่ม/เข้าครั้งแรกแล้วออฟไลน์ → เว็ปไม่จอเปล่า)         │
 // └─────────────────────────────────────────────────────────────────┘
 import productsData from '../../catalog/products.json';
 import { CATEGORIES, type Category, type ClothingItem, type Fit, type Gender } from '../types';
 import { imageUrlByPath } from './productImages';
 
+const SB_URL = import.meta.env.VITE_SUPABASE_URL;
+const SB_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const CACHE_KEY = 'dood.catalog.v1';
+
+// รองรับทั้งแถวจาก Supabase (image_url เต็ม, buy_url) และ snapshot เดิม (image path, buyUrl)
 interface RawProduct {
   id: string;
   category: Category;
   name: string;
   price: number;
   color: string;
-  image?: string;
+  image?: string; // snapshot: path ใน src/assets
+  image_url?: string; // Supabase: URL เต็ม
   buyUrl?: string;
+  buy_url?: string;
   style?: string;
   gender?: Gender;
   fit?: Fit;
@@ -25,7 +33,7 @@ interface RawProduct {
   scale?: number;
 }
 
-// map raw → ClothingItem (ผูก URL รูปจาก path)
+// map raw → ClothingItem (รูป: ใช้ image_url ถ้ามี ไม่งั้น resolve path เดิมจาก glob)
 function toItem(p: RawProduct): ClothingItem {
   return {
     id: p.id,
@@ -33,17 +41,17 @@ function toItem(p: RawProduct): ClothingItem {
     name: p.name,
     price: p.price,
     color: p.color,
-    imageUrl: p.image ? imageUrlByPath[p.image] : undefined,
-    buyUrl: p.buyUrl || undefined,
+    imageUrl: p.image_url || (p.image ? imageUrlByPath[p.image] : undefined),
+    buyUrl: p.buyUrl || p.buy_url || undefined,
     style: p.style || undefined,
-    gender: p.gender || 'unisex', // สินค้าเดิมที่ไม่มีค่า → unisex (โชว์ทุกฟิลเตอร์)
-    fit: p.fit || undefined, // ไม่ระบุ = long
+    gender: p.gender || 'unisex',
+    fit: p.fit || undefined,
     aspect: p.aspect || undefined,
     scale: p.scale || undefined,
   };
 }
 
-// จัดกลุ่มสินค้าตามหมวด + ใส่ตัวสำรองถ้าหมวดไหนว่าง (กันแอปพัง)
+// จัดกลุ่มตามหมวด + ใส่ตัวสำรองถ้าหมวดไหนว่าง (กันแอปพัง)
 function group(products: RawProduct[]): Record<Category, ClothingItem[]> {
   return CATEGORIES.reduce(
     (acc, cat) => {
@@ -58,8 +66,51 @@ function group(products: RawProduct[]): Record<Category, ClothingItem[]> {
   );
 }
 
-// async ตั้งแต่ตอนนี้ เพื่อให้วันสลับไป backend ไม่ต้องแก้ผู้เรียก
+// ② ดึงจาก Supabase (เฉพาะ active, เรียงตาม sort_order)
+async function fetchFromSupabase(): Promise<RawProduct[]> {
+  if (!SB_URL || !SB_ANON) throw new Error('ยังไม่ตั้งค่า Supabase env');
+  const res = await fetch(
+    `${SB_URL}/rest/v1/products?select=*&is_active=eq.true&order=sort_order`,
+    { headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` } },
+  );
+  if (!res.ok) throw new Error(`ดึง catalog ไม่สำเร็จ (${res.status})`);
+  const rows = (await res.json()) as RawProduct[];
+  if (!Array.isArray(rows) || rows.length === 0) throw new Error('catalog ว่าง');
+  return rows;
+}
+
+function readCache(): RawProduct[] | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const data = raw ? JSON.parse(raw) : null;
+    return Array.isArray(data) && data.length ? data : null;
+  } catch {
+    return null;
+  }
+}
+function writeCache(rows: RawProduct[]) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(rows));
+  } catch {
+    /* localStorage เต็ม/ปิด → ข้าม */
+  }
+}
+
+// จุดเรียกจริงของทั้งแอป — async เหมือนเดิม ผู้เรียกไม่ต้องแก้
 export async function getCatalog(): Promise<Record<Category, ClothingItem[]>> {
-  const products = (productsData as { products: RawProduct[] }).products;
-  return group(products);
+  const cached = readCache();
+  if (cached) {
+    // ① มี cache → คืนทันที (เร็วเท่า bundle เดิม) + รีเฟรชเบื้องหลังไว้ให้รอบหน้า
+    fetchFromSupabase().then(writeCache).catch(() => {});
+    return group(cached);
+  }
+  // เข้าครั้งแรก (ยังไม่มี cache) → ลอง Supabase
+  try {
+    const rows = await fetchFromSupabase();
+    writeCache(rows);
+    return group(rows);
+  } catch {
+    // ③ fallback: snapshot ที่ bundle มากับแอป (รูปโหลดจาก src/assets ในเครื่อง → ทำงานแม้ Supabase ล่ม)
+    return group((productsData as { products: RawProduct[] }).products);
+  }
 }

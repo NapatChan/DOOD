@@ -1,7 +1,7 @@
 # 🧭 DOOD-INDEX — แผนที่ไฟล์ "งานนี้อ่านไฟล์ไหน"
 
 > วัตถุประสงค์: มี feature/request เข้ามา → รู้ทันทีว่า **ต้องอ่าน/แก้ไฟล์ไหน** และ **ไฟล์ไหนไม่ต้องแตะ**
-> อัปเดต: 2026-07-28 · ไกด์ไลน์: [planning-frontend.md](planning-frontend.md) · [planning-backend-final.md](planning-backend-final.md)
+> อัปเดต: 2026-07-28 · ไกด์ไลน์: [planning-frontend.md](planning-frontend.md) · [planning-backend.md](planning-backend.md)
 
 > ### 📊 เช็กสถานะก่อนเริ่มงานเสมอ → [status.md](status.md)
 > บอก **ทำถึงไหนแล้ว · ต่อไปทำอะไร · อะไรค้าง (ยังไม่ push)**
@@ -30,7 +30,7 @@
 | **ข้อมูลสินค้า / catalog (อ่าน)** | [catalog/products.json](catalog/products.json) · [data/catalogSource.ts](src/data/catalogSource.ts) ⭐ · [data/productImages.ts](src/data/productImages.ts) | admin/* |
 | **ธีม / สี / ฟอนต์ / CSS รวม** | [src/index.css](src/index.css) · [tailwind.config.js](tailwind.config.js) · App.tsx | scripts/*, data/* |
 | **ตั้งค่า build / dev server / รัน-หยุด** | [vite.config.ts](vite.config.ts) · [package.json](package.json) · [start.command](start.command)/[stop.command](stop.command) · [.vscode/](.vscode/) | src/* |
-| **Backend (Supabase / migration)** | [planning-backend-final.md](planning-backend-final.md) ⭐ → แล้วแก้ catalogSource, admin-plugin, api.ts (ดูแผน §7) | components/*, LookPreview |
+| **Backend (Supabase / migration)** | [planning-backend.md](planning-backend.md) ⭐ → แล้วแก้ catalogSource, admin-plugin, api.ts (ดูแผน §7) | components/*, LookPreview |
 | **AI (ตัดพื้นหลัง / กรอกข้อมูล / สไตลิสต์)** | [planning-ai-agent.md](planning-ai-agent.md) ⭐ · admin-plugin.mjs · bg-util.mjs · remove-bg.mjs | components/* |
 | **ทิศทาง/ลำดับงานรวมของโปรเจกต์** | [ROADMAP.md](ROADMAP.md) | (เอกสารเฉย ๆ) |
 
@@ -93,8 +93,7 @@
 |---|---|
 | [status.md](status.md) ⭐ | **เปิดทุกครั้งก่อนเริ่มงาน** — ทำถึงไหน/ต่อไปอะไร/ค้างอะไร (ต้องอัปเดตทุกการเปลี่ยนแปลง) |
 | [planning-frontend.md](planning-frontend.md) | เข้าใจหลักการ UX/gesture/state ดั้งเดิม (เฟส 1) |
-| [planning-backend-final.md](planning-backend-final.md) ⭐ | **ทำ backend** (Supabase, schema, cache, migration) — ใช้ฉบับนี้ |
-| [planning-backend.md](planning-backend.md) | อ้างอิงการวิเคราะห์ทางเลือก 🅰️/🅱️ เท่านั้น (ถูกแทนแล้ว) |
+| [planning-backend.md](planning-backend.md) ⭐ | **ทำ backend** (Supabase, schema, cache, migration + วิเคราะห์ทางเลือก 🅰️/🅱️) — ไฟล์เดียวจบ |
 | [planning-ai-agent.md](planning-ai-agent.md) | ทำ AI (ตัดพื้นหลัง/กรอกข้อมูล/สไตลิสต์) |
 | [ROADMAP.md](ROADMAP.md) | ดูภาพรวม/ลำดับความสำคัญทั้งโปรเจกต์ |
 | [README.md](README.md) · [catalog/README.md](catalog/README.md) | วิธีรัน/เพิ่มสินค้า |
