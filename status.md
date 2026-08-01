@@ -8,7 +8,7 @@
 
 ## §1. 🟢 สถานะ Git — sync แล้ว
 
-- **push ล่าสุด: `1b20fda`** — Backend B2 + สินค้าจริง 23 ชิ้น + ลิงก์ Shopee + แก้ bg/ขนาด · snapshot = ของจริงแล้ว
+- **push ล่าสุด: `b1e82f0`** — แชร์ลุค + ระบบล็อกอิน (Magic Link) + OG/favicon
 - เว็ปจริง Vercel = โค้ดล่าสุด · ไม่มีงานค้าง push · rotate key เสร็จ ✅
 
 ---
@@ -79,7 +79,9 @@
 
 ## §5. 📝 Change log (ใหม่สุดอยู่บน)
 
-- **2026-08-01** — 🔗☁️ **แชร์ลุค + ระบบล็อกอิน (Magic Link)** [ยังไม่ push · รอ user ตั้งค่า Supabase + เทสต์]: ปุ่มแชร์เข้ารหัสลุคใน URL (`?l=`) + Web Share/ก๊อปลิงก์ + เปิดลิงก์ใส่ลุคทันที · OG meta + favicon · `@supabase/supabase-js` + **Magic Link** (เปลี่ยนจาก OTP เพราะแก้เทมเพลตต้องมี SMTP ก่อน — magic link ใช้อีเมลในตัวได้เลย, flow=implicit เผื่อเปิดลิงก์คนละเบราว์เซอร์) · savedLooksStore เป็น guest(localStorage)/user(Supabase) ย้ายข้อมูลตอนล็อกอิน · ตาราง `saved_looks` + RLS (`sql/saved_looks.sql`) · guest+UI เทสต์ผ่าน+build ผ่าน · **ก่อน launch: ตั้ง SMTP (Resend/Gmail)** เพราะอีเมลในตัวจำกัดโควตา
+- **2026-08-02** — 🧦 **สินค้าชุดใหม่ (รวม 66 ชิ้น: หมวก 25 · เสื้อ 29 · กางเกง 12)**: เสื้อทุกตัว scale=0.74 (flat) · หมวกแก้ bg — ตัดเงาลอยใต้หมวก (LOS ANGELESS blob crop) + ตัดติ่ง/สายที่ยื่นข้าง (Rosé Frantz, PARIS ฯลฯ — crop คอลัมน์ริมที่ coverage<22%) · เสื้อ 1 ตัว bg กินเนื้อ (top-msakxttraq เสื้อผูกเชือกเขียว ทึบ 15% — ยังไม่แก้ รอ user) · แก้ทั้งหมดใน Supabase live แล้ว (ไม่ต้อง push)
+- **2026-08-01** — 🚀 **push แชร์+ล็อกอิน (`b1e82f0`)** → live บน Vercel · ตั้ง Supabase Auth URL config (localhost + dood-red.vercel.app) + ตาราง saved_looks เสร็จ
+- **2026-08-01** — 🔗☁️ **แชร์ลุค + ระบบล็อกอิน (Magic Link)**: ปุ่มแชร์เข้ารหัสลุคใน URL (`?l=`) + Web Share/ก๊อปลิงก์ + เปิดลิงก์ใส่ลุคทันที · OG meta + favicon · `@supabase/supabase-js` + **Magic Link** (เปลี่ยนจาก OTP เพราะแก้เทมเพลตต้องมี SMTP ก่อน — magic link ใช้อีเมลในตัวได้เลย, flow=implicit เผื่อเปิดลิงก์คนละเบราว์เซอร์) · savedLooksStore เป็น guest(localStorage)/user(Supabase) ย้ายข้อมูลตอนล็อกอิน · ตาราง `saved_looks` + RLS (`sql/saved_looks.sql`) · guest+UI เทสต์ผ่าน+build ผ่าน · **ก่อน launch: ตั้ง SMTP (Resend/Gmail)** เพราะอีเมลในตัวจำกัดโควตา
 - **2026-08-01** — 🚀 **push B2 (`1b20fda`)**: Backend B2 + สินค้าจริง 23 ชิ้น + ลิงก์ Shopee + แก้ bg/ขนาด + snapshot ของจริง → เว็ปจริง sync ครบ
 - **2026-08-01** — 💰 **ใส่ลิงก์ Shopee ครบ 23/23** (1 ลิงก์/ประเภท) → รายได้ปลดล็อก
 - **2026-08-01** — 📐 ตั้ง scale=0.8 (80%) ให้เสื้อสายเดี่ยวทั้ง 7 ตัว (bulk PATCH category=top) → เว็ปจริงอัปเดตแล้ว
