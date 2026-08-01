@@ -1,5 +1,6 @@
 import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import AuthModal from './components/AuthModal';
 import Collection from './components/Collection';
 import GenderMenu from './components/GenderMenu';
 import GenderTabs from './components/GenderTabs';
@@ -11,9 +12,11 @@ import MobilePriceSheet from './components/MobilePriceSheet';
 import NavArrow from './components/NavArrows';
 import StageCaption from './components/StageCaption';
 import Toast from './components/Toast';
+import { useAuth } from './hooks/useAuth';
 import { useSavedLooks } from './hooks/useSavedLooks';
 import { useWardrobe } from './hooks/useWardrobe';
-import type { Category } from './types';
+import { buildShareUrl, parseLookFromSearch } from './lib/lookUrl';
+import { CATEGORIES, type Category } from './types';
 
 // เกณฑ์ตัดสินว่า "ปัดสำเร็จ" — ระยะหรือความเร็วอย่างใดอย่างหนึ่งถึง
 const OFFSET_THRESHOLD = 60; // px
@@ -40,9 +43,11 @@ export default function App() {
   const layerHidden = state.hidden[selectedLayer];
 
   // คอลเลกชันลุคที่บันทึกไว้
-  const { looks, count, save, remove } = useSavedLooks();
+  const { looks, count, save, remove, isSaved } = useSavedLooks();
+  const auth = useAuth();
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   // gesture ปัดแนวนอน "ทั่วทั้งจอ" — เลื่อนชั้นที่เลือกตามนิ้ว แล้วสลับชิ้นตอนปล่อย
   const dragX = useMotionValue(0);
@@ -56,6 +61,28 @@ export default function App() {
     const t = window.setTimeout(() => setShowNudge(false), 5000);
     return () => window.clearTimeout(t);
   }, []);
+
+  // กดลิงก์ในเมล (magic link) กลับมา → session เปลี่ยนจาก null → มี → โชว์ toast + ปิด modal
+  const prevLoggedInRef = useRef(auth.isLoggedIn);
+  useEffect(() => {
+    if (auth.isLoggedIn && !prevLoggedInRef.current) {
+      showToast('เข้าสู่ระบบแล้ว ☁️ ลุคเก็บถาวรแล้ว');
+      setAuthOpen(false);
+    }
+    prevLoggedInRef.current = auth.isLoggedIn;
+  }, [auth.isLoggedIn]);
+
+  // เปิดลิงก์ที่เพื่อนแชร์มา (?l=...) → ใส่ลุคนั้นทันทีเมื่อสินค้าโหลดเสร็จ แล้วล้าง param ออกจาก URL
+  const appliedSharedRef = useRef(false);
+  useEffect(() => {
+    if (loading || appliedSharedRef.current) return;
+    appliedSharedRef.current = true;
+    const parsed = parseLookFromSearch(window.location.search);
+    if (parsed) {
+      applyLook(parsed.items, parsed.hidden);
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, [loading, applyLook]);
 
   const handlePan = (_e: unknown, info: PanInfo) => {
     if (Math.abs(info.offset.x) > 8 || Math.abs(info.offset.y) > 8) {
@@ -102,11 +129,41 @@ export default function App() {
   };
 
   // "อยากได้ลุคนี้" = บันทึกลุคที่สวมอยู่ลงคอลเลกชัน (กันบันทึกซ้ำ)
+  // เช็คซ้ำแบบ sync ก่อน (save เป็น async ตอนล็อกอิน) เพื่อโชว์ toast ให้ถูก
   const handleWant = useCallback(() => {
     if (!selectedItems) return;
-    const added = save(selectedItems, state.hidden);
-    showToast(added ? 'บันทึกลุคแล้ว 💛' : 'ลุคนี้บันทึกไว้แล้ว ✓');
-  }, [selectedItems, save, state.hidden]);
+    const already = isSaved(selectedItems, state.hidden);
+    void save(selectedItems, state.hidden);
+    showToast(already ? 'ลุคนี้บันทึกไว้แล้ว ✓' : 'บันทึกลุคแล้ว 💛');
+  }, [selectedItems, save, isSaved, state.hidden]);
+
+  // แชร์ลุค — เข้ารหัสลุคใน URL แล้วเรียกเมนูแชร์ของเครื่อง (fallback = ก๊อปลิงก์)
+  const handleShare = useCallback(async () => {
+    if (!selectedItems) return;
+    const idMap = CATEGORIES.reduce(
+      (acc, c) => {
+        acc[c] = selectedItems[c].id;
+        return acc;
+      },
+      {} as Record<Category, string>,
+    );
+    const url = buildShareUrl(idMap, state.hidden);
+    const shareData = { title: 'DOOD', text: 'ดูลุคที่ฉันจัดใน DOOD 👗✨', url };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        /* ผู้ใช้ยกเลิก — ไม่ต้องทำอะไร */
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('ก๊อปลิงก์แล้ว 🔗 ส่งให้เพื่อนได้เลย');
+    } catch {
+      showToast('ก๊อปลิงก์ไม่สำเร็จ');
+    }
+  }, [selectedItems, state.hidden]);
 
   // ใส่ลุคจากคอลเลกชัน → โหลดขึ้นมาสคอต + ปิด overlay (ไม่มีป็อปอัพ ปิดเองก็รู้แล้ว)
   const handleApplyLook = useCallback(
@@ -315,7 +372,7 @@ export default function App() {
           <ExpandButton onClick={() => setPreviewOpen(true)} size={48} />
         </div>
         <div className="w-full">
-          <LookBar totalPrice={totalPrice} onWant={handleWant} />
+          <LookBar totalPrice={totalPrice} onWant={handleWant} onShare={handleShare} />
         </div>
       </footer>
 
@@ -341,6 +398,7 @@ export default function App() {
           handleWant();
           revealPrice();
         }}
+        onShare={handleShare}
       />
 
       <Collection
@@ -350,7 +408,17 @@ export default function App() {
         itemsById={itemsById}
         onRemove={remove}
         onApply={handleApplyLook}
+        authEnabled={auth.authEnabled}
+        isLoggedIn={auth.isLoggedIn}
+        email={auth.email}
+        onLogin={() => setAuthOpen(true)}
+        onLogout={() => {
+          void auth.signOut();
+          showToast('ออกจากระบบแล้ว');
+        }}
       />
+
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
 
       <LookPreview
         open={previewOpen}

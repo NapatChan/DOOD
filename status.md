@@ -6,11 +6,10 @@
 
 ---
 
-## §1. 🟡 สถานะ Git — มีงานค้าง (B2 ยังไม่ push)
+## §1. 🟢 สถานะ Git — sync แล้ว
 
-- **push ล่าสุด: `2d08d12` (Backend B1)** — เว็ปจริงอ่าน Supabase แล้ว
-- **ค้างในเครื่อง (ยังไม่ push): Backend B2** — แอดมินเขียนขึ้น Supabase + `npm run backup` + snapshot รูปเปลี่ยนเป็นชื่ออิง id (ไฟล์เยอะ ดู `git status`)
-- ⚠️ **อย่าเพิ่ง push จนกว่าเจ้าของสั่ง** — (rotate service key เสร็จแล้ว ✅ ปลอดภัย)
+- **push ล่าสุด: `1b20fda`** — Backend B2 + สินค้าจริง 23 ชิ้น + ลิงก์ Shopee + แก้ bg/ขนาด · snapshot = ของจริงแล้ว
+- เว็ปจริง Vercel = โค้ดล่าสุด · ไม่มีงานค้าง push · rotate key เสร็จ ✅
 
 ---
 
@@ -45,7 +44,7 @@
 - [x] 🔒 `vite.config.ts` `host: true` → `'localhost'` (กันคนใน LAN เข้าแอดมินที่ถือ service key)
 - [x] 🧪 เทสต์ผ่านหมด: GET 36 · POST สร้างขึ้น Supabase+รูปขึ้น CDN (200) · PUT แก้ได้ · DELETE soft-delete หายจาก catalog · `npm run backup` sync ได้ · build+tsc ผ่าน · แอดมิน UI เรนเดอร์รูป Supabase 0 error
 - [x] 🔑 **จัดการ key ที่หลุด**: สร้าง secret key ใหม่ (`sb_secret_...`) ใส่ `.env` + **Disable legacy API keys** → เทสต์ยืนยัน key เก่าตาย (401), key ใหม่เขียนได้ (201), เว็ปลูกค้าอ่านได้ (publishable, 36)
-- [ ] 🧑 **push B2** (สั่ง "push ที") — ปลอดภัยแล้ว rotate เสร็จ
+- [x] 🚀 **push B2** (`1b20fda`) — `npm run backup` + build ผ่าน + เช็ค .env/key ไม่หลุด → ขึ้น Vercel แล้ว
 
 **ลำดับ 2 — Roadmap เฟส 1: หาเงิน + โต** (ดู [ROADMAP.md](ROADMAP.md))
 - [x] 🧑 สมัคร affiliate Shopee + ใส่ลิงก์ครบ **23/23** (1 ลิงก์/ประเภท → หน้า listing มีทุกสีเป็น variant) → **รายได้ปลดล็อกแล้ว**
@@ -80,6 +79,8 @@
 
 ## §5. 📝 Change log (ใหม่สุดอยู่บน)
 
+- **2026-08-01** — 🔗☁️ **แชร์ลุค + ระบบล็อกอิน (Magic Link)** [ยังไม่ push · รอ user ตั้งค่า Supabase + เทสต์]: ปุ่มแชร์เข้ารหัสลุคใน URL (`?l=`) + Web Share/ก๊อปลิงก์ + เปิดลิงก์ใส่ลุคทันที · OG meta + favicon · `@supabase/supabase-js` + **Magic Link** (เปลี่ยนจาก OTP เพราะแก้เทมเพลตต้องมี SMTP ก่อน — magic link ใช้อีเมลในตัวได้เลย, flow=implicit เผื่อเปิดลิงก์คนละเบราว์เซอร์) · savedLooksStore เป็น guest(localStorage)/user(Supabase) ย้ายข้อมูลตอนล็อกอิน · ตาราง `saved_looks` + RLS (`sql/saved_looks.sql`) · guest+UI เทสต์ผ่าน+build ผ่าน · **ก่อน launch: ตั้ง SMTP (Resend/Gmail)** เพราะอีเมลในตัวจำกัดโควตา
+- **2026-08-01** — 🚀 **push B2 (`1b20fda`)**: Backend B2 + สินค้าจริง 23 ชิ้น + ลิงก์ Shopee + แก้ bg/ขนาด + snapshot ของจริง → เว็ปจริง sync ครบ
 - **2026-08-01** — 💰 **ใส่ลิงก์ Shopee ครบ 23/23** (1 ลิงก์/ประเภท) → รายได้ปลดล็อก
 - **2026-08-01** — 📐 ตั้ง scale=0.8 (80%) ให้เสื้อสายเดี่ยวทั้ง 7 ตัว (bulk PATCH category=top) → เว็ปจริงอัปเดตแล้ว
 - **2026-08-01** — 🩳 **แก้ bg หว่างขากางเกงสีอ่อน**: กางเกงขาว+ม่วงอ่อน พื้นหลังหว่างขาไม่ถูกลบ (ขาวบนขาว ตัดไม่ออก) → flood-fill จากจุดกลาง ลบเฉพาะขาวแท้ (L≥250) ที่ต่อเนื่องกัน (ไม่โดนเชือก/เนื้อผ้า) → อัปรูปใหม่ขึ้น Supabase เว็ปจริงอัปเดตแล้ว
@@ -102,4 +103,7 @@
 ---
 
 ## §6. 🔗 เอกสารที่เกี่ยวข้อง
+
+**เว็ปจริง (production): https://dood-red.vercel.app** · Supabase: `jphtnutfuaeljfamuwbe`
+
 [DOOD-INDEX.md](DOOD-INDEX.md) (แผนที่ไฟล์) · [ROADMAP.md](ROADMAP.md) (ภาพรวม) · [planning-backend.md](planning-backend.md) · [planning-ai-agent.md](planning-ai-agent.md) · [planning-frontend.md](planning-frontend.md)

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import type { Category, ClothingItem } from '../types';
 import { CATEGORIES, CATEGORY_LABEL } from '../types';
+import { ShareIcon } from './icons';
 
 interface MobilePriceSheetProps {
   selectedItems: Record<Category, ClothingItem>;
@@ -9,6 +10,7 @@ interface MobilePriceSheetProps {
   visible: boolean;
   onToggle: () => void;
   onWant: () => void;
+  onShare: () => void;
 }
 
 const formatBaht = (n: number) => `฿${n.toLocaleString('th-TH')}`;
@@ -22,6 +24,7 @@ export default function MobilePriceSheet({
   visible,
   onToggle,
   onWant,
+  onShare,
 }: MobilePriceSheetProps) {
   return (
     <motion.div
@@ -96,8 +99,16 @@ export default function MobilePriceSheet({
           </div>
           <button
             type="button"
+            onClick={onShare}
+            aria-label="แชร์ลุคนี้"
+            className="ml-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition active:scale-90"
+          >
+            <ShareIcon size={20} />
+          </button>
+          <button
+            type="button"
             onClick={onWant}
-            className="ml-auto whitespace-nowrap rounded-full bg-neutral-900 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition active:scale-95"
+            className="whitespace-nowrap rounded-full bg-neutral-900 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition active:scale-95"
           >
             อยากได้ลุคนี้ ✨
           </button>

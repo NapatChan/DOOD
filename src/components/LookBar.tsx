@@ -1,14 +1,17 @@
 import { motion } from 'framer-motion';
 
+import { ShareIcon } from './icons';
+
 interface LookBarProps {
   totalPrice: number;
   onWant: () => void;
+  onShare: () => void;
 }
 
 const formatBaht = (n: number) => `฿${n.toLocaleString('th-TH')}`;
 
-// แถบล่าง: ราคารวมของทั้งลุค + ปุ่ม "อยากได้ลุคนี้"
-export default function LookBar({ totalPrice, onWant }: LookBarProps) {
+// แถบล่าง: ราคารวมของทั้งลุค + ปุ่มแชร์ + ปุ่ม "อยากได้ลุคนี้"
+export default function LookBar({ totalPrice, onWant, onShare }: LookBarProps) {
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-md ring-1 ring-black/5 md:px-6 md:py-4">
       <div className="flex flex-col">
@@ -26,8 +29,16 @@ export default function LookBar({ totalPrice, onWant }: LookBarProps) {
       </div>
       <button
         type="button"
+        onClick={onShare}
+        aria-label="แชร์ลุคนี้"
+        className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition active:scale-90 md:h-12 md:w-12"
+      >
+        <ShareIcon size={19} />
+      </button>
+      <button
+        type="button"
         onClick={onWant}
-        className="ml-auto whitespace-nowrap rounded-full bg-neutral-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition active:scale-95 md:px-7 md:py-3.5 md:text-base"
+        className="whitespace-nowrap rounded-full bg-neutral-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition active:scale-95 md:px-7 md:py-3.5 md:text-base"
       >
         อยากได้ลุคนี้ ✨
       </button>

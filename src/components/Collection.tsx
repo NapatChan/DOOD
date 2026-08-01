@@ -19,6 +19,11 @@ interface CollectionProps {
   itemsById: Record<string, ClothingItem>;
   onRemove: (id: string) => void;
   onApply: (items: Record<Category, string>, hidden: Record<Category, boolean>) => void;
+  authEnabled: boolean;
+  isLoggedIn: boolean;
+  email: string | null;
+  onLogin: () => void;
+  onLogout: () => void;
 }
 
 const formatBaht = (n: number) => `฿${n.toLocaleString('th-TH')}`;
@@ -186,6 +191,11 @@ export default function Collection({
   itemsById,
   onRemove,
   onApply,
+  authEnabled,
+  isLoggedIn,
+  email,
+  onLogin,
+  onLogout,
 }: CollectionProps) {
   // ปิดด้วยปุ่ม Esc + ล็อกสกอลล์พื้นหลังตอนเปิด
   useEffect(() => {
@@ -234,6 +244,37 @@ export default function Collection({
                 ✕
               </button>
             </div>
+
+            {/* แถบล็อกอิน — เก็บลุคถาวร/ข้ามเครื่อง (ทางเลือก ไม่บังคับ) */}
+            {authEnabled && (
+              <div className="mx-5 mb-1 shrink-0">
+                {isLoggedIn ? (
+                  <div className="flex items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-2.5 text-sm ring-1 ring-emerald-100">
+                    <span className="text-emerald-600">☁️</span>
+                    <span className="min-w-0 flex-1 truncate text-emerald-800">
+                      เก็บถาวรแล้ว · {email}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="shrink-0 text-xs font-semibold text-emerald-700 underline"
+                    >
+                      ออกจากระบบ
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onLogin}
+                    className="flex w-full items-center gap-2 rounded-2xl bg-neutral-900 px-4 py-2.5 text-left text-sm text-white transition active:scale-[0.99]"
+                  >
+                    <span>☁️</span>
+                    <span className="flex-1 font-semibold">เข้าสู่ระบบเพื่อเก็บลุคถาวร</span>
+                    <span className="text-xs text-white/60">ดูข้ามเครื่อง →</span>
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* เนื้อหา */}
             <div className="flex-1 space-y-3 overflow-y-auto px-5 pb-4 pt-1">
