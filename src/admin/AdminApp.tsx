@@ -19,6 +19,12 @@ import {
 } from './api';
 import FittingPreview, { type PreviewGarment } from './FittingPreview';
 
+// รูปสินค้ามาจาก Supabase เป็น URL เต็ม (http…) — ใช้ตรง ๆ; ถ้าเป็น path เดิม (สแนปช็อต) prefix ให้
+function assetUrl(image: string | undefined | null): string | undefined {
+  if (!image) return undefined;
+  return /^https?:\/\//.test(image) ? image : `/src/assets/${image}`;
+}
+
 // อ่านไฟล์ → dataURL (base64) สำหรับส่งขึ้น API
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -80,7 +86,7 @@ export default function AdminApp() {
       const ref = products.find((p) => p.category === cat && p.id !== form.editingId);
       if (ref)
         map[cat] = {
-          imageUrl: `/src/assets/${ref.image}`,
+          imageUrl: assetUrl(ref.image),
           fit: ref.fit,
           aspect: ref.aspect,
           scale: ref.scale,
@@ -146,7 +152,7 @@ export default function AdminApp() {
       scale: p.scale ?? 1,
       aspect: p.aspect,
       imageBase64: null,
-      previewUrl: p.image ? `/src/assets/${p.image}` : null,
+      previewUrl: assetUrl(p.image) ?? null,
       removeBg: true,
     });
     setError(null);
@@ -506,7 +512,7 @@ export default function AdminApp() {
                             <div
                               className="aspect-square w-full"
                               style={{
-                                backgroundImage: p.image ? `url(/src/assets/${p.image})` : undefined,
+                                backgroundImage: p.image ? `url(${assetUrl(p.image)})` : undefined,
                                 backgroundColor: GARMENT_TILE_BG,
                                 backgroundSize: 'contain',
                                 backgroundPosition: 'center',

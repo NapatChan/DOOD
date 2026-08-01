@@ -7,6 +7,8 @@ export default defineConfig({
   // (build ใช้ index.html เป็น entry เดียวตามค่าเริ่มต้น)
   plugins: [react(), adminApiPlugin()],
   server: {
-    host: true,
+    // localhost เท่านั้น — แอดมิน API ถือ service key (เขียน Supabase ได้) ห้ามเปิดรับทั้งวง LAN
+    // ถ้าต้องเทสจากมือถือในวงเดียวกัน ค่อยเปลี่ยนเป็น true ชั่วคราวเฉพาะตอนนั้น
+    host: 'localhost',
   },
 });

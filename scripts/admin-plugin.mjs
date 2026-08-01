@@ -1,26 +1,27 @@
 // Vite dev plugin: REST API สำหรับหน้าแอดมิน (ทำงานเฉพาะตอน dev — apply:'serve')
 //
-// จัดการ catalog/products.json + รูปใน src/assets/ เป็น "คลังเดียว"
-//   GET    /api/products         → รายการสินค้าทั้งหมด
-//   POST   /api/products         → เพิ่มสินค้า (แนบรูป base64) — trim + ดึงสี + เขียนไฟล์
-//   PUT    /api/products/:id      → แก้ไขสินค้า (เปลี่ยนรูปได้ ไม่บังคับ)
-//   DELETE /api/products/:id      → ลบสินค้า + ลบไฟล์รูป
+// เขียนขึ้น Supabase โดยตรง (DB + Storage) — แหล่งข้อมูลจริงของเว็ป
+//   GET    /api/products         → รายการสินค้า active ทั้งหมด (จาก DB)
+//   POST   /api/products         → เพิ่มสินค้า (แนบรูป base64) — trim + ตัดพื้นหลัง + ดึงสี → อัปโหลด Storage + insert DB
+//   PUT    /api/products/:id      → แก้ไข (เปลี่ยนรูปได้: อัปโหลดไฟล์เวอร์ชันใหม่ + ลบเก่า)
+//   DELETE /api/products/:id      → soft-delete (is_active=false) — เก็บไฟล์รูปไว้ (กันลุคที่บันทึกไว้พัง)
 //
-// วันขึ้น backend จริง: ย้าย logic นี้ไปเป็น API เซิร์ฟเวอร์ + object storage
-// สัญญา (endpoint/รูปแบบข้อมูล) เหมือนเดิม → ฝั่ง client (src/admin/api.ts) แทบไม่ต้องแก้
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+// รูปเก็บใน Storage แบบ path แบน: `${id}-${stamp}.webp` (stamp = เวอร์ชัน กัน CDN cache รูปเก่า)
+// สแนปช็อตในเครื่อง (catalog/products.json + src/assets) sync ด้วย `npm run backup` ไว้เป็น fallback
 import sharp from 'sharp';
 import { maybeRemoveBg } from './bg-util.mjs';
+import {
+  hasSupabase,
+  dbSelect,
+  dbInsert,
+  dbUpdate,
+  uploadObject,
+  deleteObject,
+  downloadObject,
+  storagePathFromUrl,
+} from './supabase.mjs';
 
-const ROOT = fileURLToPath(new URL('../', import.meta.url));
-const PRODUCTS_JSON = path.join(ROOT, 'catalog/products.json');
-const ASSETS = path.join(ROOT, 'src/assets');
-
-// category → โฟลเดอร์ใน src/assets
-const FOLDER = { hat: 'hats', top: 'shirts', pants: 'pants' };
-const CATEGORIES = Object.keys(FOLDER);
+const CATEGORIES = ['hat', 'top', 'pants'];
 const GENDERS = ['male', 'female', 'unisex'];
 const normGender = (g) => (GENDERS.includes(g) ? g : 'unisex');
 // ตัวคูณขนาดรายชิ้น — จำกัดช่วง 0.3–2, ปัด 2 ตำแหน่ง (undefined/1 = ปกติ)
@@ -44,15 +45,6 @@ async function resolveFit(buffer, category, override) {
   if (category !== 'pants') return undefined;
   if (override === 'long' || override === 'short') return override;
   return autoFit(buffer); // 'auto' หรือไม่ระบุ → เดาเอง
-}
-
-// ---------- helpers: อ่าน/เขียน products.json ----------
-function readStore() {
-  if (!fs.existsSync(PRODUCTS_JSON)) return { version: 1, products: [] };
-  return JSON.parse(fs.readFileSync(PRODUCTS_JSON, 'utf8'));
-}
-function writeStore(store) {
-  fs.writeFileSync(PRODUCTS_JSON, JSON.stringify(store, null, 2) + '\n');
 }
 
 // ---------- helpers: รูป ----------
@@ -99,22 +91,29 @@ function genId(category) {
     .padStart(2, '0')}`;
 }
 
-function imagePathFor(category, id) {
-  return `${FOLDER[category]}/${id}.webp`; // relative under src/assets
+// object path ใน Storage: id + เวอร์ชัน (เปลี่ยนทุกครั้งที่เปลี่ยนรูป → CDN ไม่คืนรูปเก่า)
+function objectPathFor(id) {
+  return `${id}-${Date.now().toString(36)}.webp`;
 }
 
-function deleteImageFile(relPath) {
-  if (!relPath) return;
-  const abs = path.join(ASSETS, relPath);
-  if (fs.existsSync(abs)) fs.rmSync(abs);
-}
-
-async function writeImageFile(category, id, buffer) {
-  const rel = imagePathFor(category, id);
-  const abs = path.join(ASSETS, rel);
-  fs.mkdirSync(path.dirname(abs), { recursive: true });
-  fs.writeFileSync(abs, buffer);
-  return rel;
+// ---------- map DB row ↔ รูปแบบที่แอดมิน UI ใช้ ----------
+// แอดมินคาดหวัง field `image` (URL), `buyUrl` — DB ใช้ `image_url`, `buy_url`
+function toAdminProduct(row) {
+  const p = {
+    id: row.id,
+    category: row.category,
+    name: row.name,
+    price: row.price,
+    color: row.color,
+    image: row.image_url,
+    buyUrl: row.buy_url || '',
+    style: row.style || '',
+    gender: row.gender || 'unisex',
+  };
+  if (row.fit) p.fit = row.fit;
+  if (row.aspect != null) p.aspect = row.aspect;
+  if (row.scale != null) p.scale = row.scale;
+  return p;
 }
 
 // ---------- helpers: HTTP ----------
@@ -158,6 +157,13 @@ function validateFields(body, { partial } = {}) {
   return errors;
 }
 
+// sort_order ถัดไป = มากสุด + 1 (ต่อท้ายรายการ)
+async function nextSortOrder() {
+  const rows = await dbSelect('select=sort_order&order=sort_order.desc.nullslast&limit=1');
+  const max = rows[0]?.sort_order;
+  return Number.isFinite(max) ? max + 1 : 0;
+}
+
 export function adminApiPlugin() {
   return {
     name: 'dood-admin-api',
@@ -167,13 +173,20 @@ export function adminApiPlugin() {
         const url = (req.url || '').split('?')[0];
         if (!url.startsWith('/api/products')) return next();
 
+        if (!hasSupabase) {
+          return sendJson(res, 500, {
+            errors: ['ยังไม่ได้ตั้งค่า Supabase ใน .env (VITE_SUPABASE_URL + SUPABASE_SERVICE_KEY)'],
+          });
+        }
+
         try {
-          // GET /api/products
+          // GET /api/products — รายการ active ทั้งหมด
           if (req.method === 'GET' && url === '/api/products') {
-            return sendJson(res, 200, readStore());
+            const rows = await dbSelect('select=*&is_active=eq.true&order=sort_order');
+            return sendJson(res, 200, { version: 1, products: rows.map(toAdminProduct) });
           }
 
-          // POST /api/products
+          // POST /api/products — เพิ่มสินค้า
           if (req.method === 'POST' && url === '/api/products') {
             const body = JSON.parse((await readBody(req)).toString('utf8') || '{}');
             const errors = validateFields(body);
@@ -187,43 +200,42 @@ export function adminApiPlugin() {
               return sendJson(res, 400, { errors: [e.message] });
             }
 
-            const store = readStore();
             const id = genId(body.category);
-            const image = await writeImageFile(body.category, id, processed.buffer);
-            const product = {
+            const image_url = await uploadObject(objectPathFor(id), processed.buffer);
+            const row = {
               id,
               category: body.category,
               name: String(body.name).trim(),
               price: Number(body.price),
               color: processed.color,
-              image,
-              buyUrl: (body.buyUrl || '').trim(),
+              image_url,
+              buy_url: (body.buyUrl || '').trim(),
               style: body.style || '',
               gender: normGender(body.gender),
+              fit: (await resolveFit(processed.buffer, body.category, body.fit)) || null,
+              aspect: body.category === 'pants' ? await imageAspect(processed.buffer) : null,
+              scale: null,
+              sort_order: await nextSortOrder(),
+              is_active: true,
             };
-            const fit = await resolveFit(processed.buffer, body.category, body.fit);
-            if (fit) product.fit = fit;
-            if (body.category === 'pants') product.aspect = await imageAspect(processed.buffer);
             const scale = normScale(body.scale);
-            if (scale && scale !== 1) product.scale = scale;
-            store.products.push(product);
-            writeStore(store);
-            return sendJson(res, 201, { product });
+            if (scale && scale !== 1) row.scale = scale;
+
+            const inserted = await dbInsert(row);
+            return sendJson(res, 201, { product: toAdminProduct(inserted) });
           }
 
           // /api/products/:id  (PUT | DELETE)
           const m = url.match(/^\/api\/products\/([^/]+)$/);
           if (m) {
             const id = decodeURIComponent(m[1]);
-            const store = readStore();
-            const idx = store.products.findIndex((p) => p.id === id);
-            if (idx < 0) return sendJson(res, 404, { errors: ['ไม่พบสินค้านี้'] });
-            const current = store.products[idx];
+            const rows = await dbSelect(`select=*&id=eq.${encodeURIComponent(id)}`);
+            const current = rows[0];
+            if (!current) return sendJson(res, 404, { errors: ['ไม่พบสินค้านี้'] });
 
             if (req.method === 'DELETE') {
-              deleteImageFile(current.image);
-              store.products.splice(idx, 1);
-              writeStore(store);
+              // soft-delete — ซ่อนจาก catalog แต่เก็บไฟล์รูปไว้ (ลุคที่ลูกค้าบันทึกอาจอ้างถึง)
+              await dbUpdate(id, { is_active: false });
               return sendJson(res, 200, { ok: true });
             }
 
@@ -232,66 +244,61 @@ export function adminApiPlugin() {
               const errors = validateFields(body, { partial: true });
               if (errors.length) return sendJson(res, 400, { errors });
 
-              const updated = { ...current };
-              if (body.name !== undefined) updated.name = String(body.name).trim();
-              if (body.price !== undefined) updated.price = Number(body.price);
-              if (body.buyUrl !== undefined) updated.buyUrl = String(body.buyUrl).trim();
-              if (body.style !== undefined) updated.style = body.style || '';
-              if (body.gender !== undefined) updated.gender = normGender(body.gender);
+              const patch = {};
+              if (body.name !== undefined) patch.name = String(body.name).trim();
+              if (body.price !== undefined) patch.price = Number(body.price);
+              if (body.buyUrl !== undefined) patch.buy_url = String(body.buyUrl).trim();
+              if (body.style !== undefined) patch.style = body.style || '';
+              if (body.gender !== undefined) patch.gender = normGender(body.gender);
               if (body.scale !== undefined) {
                 const s = normScale(body.scale);
-                if (s && s !== 1) updated.scale = s;
-                else delete updated.scale;
+                patch.scale = s && s !== 1 ? s : null;
               }
 
-              const newCategory = body.category && body.category !== current.category ? body.category : null;
+              const newCategory =
+                body.category && body.category !== current.category ? body.category : null;
+              if (newCategory) patch.category = newCategory;
+              const category = newCategory || current.category;
 
-              // เปลี่ยนรูปใหม่ หรือย้ายหมวด → ต้องเขียนไฟล์ใหม่
-              if (body.imageBase64 || newCategory) {
-                const category = newCategory || current.category;
+              // เปลี่ยนรูปใหม่ → อัปโหลดไฟล์เวอร์ชันใหม่ + ลบไฟล์เก่า (Storage path แบน → เปลี่ยนหมวดไม่ต้องย้ายรูป)
+              let workBuffer = null;
+              if (body.imageBase64) {
                 let processed;
-                if (body.imageBase64) {
-                  try {
-                    processed = await processImage(body.imageBase64, body.removeBg || 'auto');
-                  } catch (e) {
-                    return sendJson(res, 400, { errors: [e.message] });
-                  }
+                try {
+                  processed = await processImage(body.imageBase64, body.removeBg || 'auto');
+                } catch (e) {
+                  return sendJson(res, 400, { errors: [e.message] });
                 }
-                // ลบไฟล์เดิมก่อน (เปลี่ยนที่อยู่)
-                deleteImageFile(current.image);
-                if (processed) {
-                  updated.color = processed.color;
-                  updated.image = await writeImageFile(category, id, processed.buffer);
-                } else {
-                  // ย้ายหมวดโดยใช้รูปเดิม
-                  const oldAbs = path.join(ASSETS, current.image);
-                  const buf = fs.existsSync(oldAbs) ? fs.readFileSync(oldAbs) : null;
-                  if (buf) updated.image = await writeImageFile(category, id, buf);
-                }
-                updated.category = category;
+                workBuffer = processed.buffer;
+                patch.image_url = await uploadObject(objectPathFor(id), workBuffer);
+                patch.color = processed.color;
+                await deleteObject(storagePathFromUrl(current.image_url));
               }
 
-              // ทรงท่อนล่าง — override ตรง ๆ, 'auto'/รูปใหม่/ย้ายมาเป็น pants → เดาจากรูปปัจจุบัน
-              if (updated.category === 'pants') {
+              // ทรงท่อนล่าง + สัดส่วน — เฉพาะ pants (ต้องมี buffer; ถ้าไม่มีรูปใหม่แต่จำเป็น → โหลดรูปเดิมจาก Storage)
+              if (category === 'pants') {
+                const needAspect =
+                  body.imageBase64 || newCategory || current.aspect == null;
+                const needFit =
+                  body.fit === 'auto' || body.imageBase64 || newCategory;
+                if ((needAspect || needFit) && !workBuffer) {
+                  const op = storagePathFromUrl(patch.image_url || current.image_url);
+                  if (op) workBuffer = await downloadObject(op);
+                }
                 if (body.fit === 'long' || body.fit === 'short') {
-                  updated.fit = body.fit;
-                } else if (body.fit === 'auto' || body.imageBase64 || newCategory) {
-                  const abs = path.join(ASSETS, updated.image);
-                  if (fs.existsSync(abs)) updated.fit = await autoFit(fs.readFileSync(abs));
+                  patch.fit = body.fit;
+                } else if (needFit && workBuffer) {
+                  patch.fit = await autoFit(workBuffer);
                 }
-                // สัดส่วนรูป — คำนวณใหม่เมื่อรูป/หมวดเปลี่ยน หรือยังไม่เคยมี
-                if (body.imageBase64 || newCategory || updated.aspect === undefined) {
-                  const abs = path.join(ASSETS, updated.image);
-                  if (fs.existsSync(abs)) updated.aspect = await imageAspect(fs.readFileSync(abs));
-                }
-              } else {
-                delete updated.fit;
-                delete updated.aspect;
+                if (needAspect && workBuffer) patch.aspect = await imageAspect(workBuffer);
+              } else if (newCategory) {
+                // ย้ายออกจาก pants → เคลียร์ fit/aspect
+                patch.fit = null;
+                patch.aspect = null;
               }
 
-              store.products[idx] = updated;
-              writeStore(store);
-              return sendJson(res, 200, { product: updated });
+              const updated = await dbUpdate(id, patch);
+              return sendJson(res, 200, { product: toAdminProduct(updated) });
             }
           }
 
