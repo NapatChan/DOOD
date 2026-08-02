@@ -80,6 +80,8 @@ async function main() {
       fit: p.fit ?? null,
       aspect: p.aspect ?? null,
       scale: p.scale ?? null,
+      variant_group: p.group ?? null,
+      color_name: p.colorName ?? null,
       sort_order: i,
     });
     i += 1;

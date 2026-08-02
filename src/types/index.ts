@@ -95,6 +95,16 @@ export interface ClothingItem {
   fit?: Fit; // ทรงท่อนล่าง (ไม่ระบุ = long)
   aspect?: number; // สัดส่วนรูป กว้าง/สูง — ใช้สมดุลขนาดท่อนล่างทรงสั้นตามทรง
   scale?: number; // ตัวคูณขนาดรายชิ้น (ปรับในแอดมิน, ไม่ระบุ = 1 = ขนาดปกติ)
+  group?: string; // คีย์จับกลุ่ม "สินค้าตัวเดียวกันหลายสี" (variant group) — ใช้ทำแทบเลือกสี
+  colorName?: string; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี ("ครีม", "กรมท่า") — ต่างจาก color ที่เป็น hex
+}
+
+// ตัวเลือกสีของสินค้ากลุ่มเดียวกัน (variant) — ใช้วาดแทบเลือกสี
+export interface ColorVariant {
+  index: number; // ตำแหน่งใน list ของหมวดนั้น (ไว้ selectVariant)
+  colorName?: string; // ชื่อสีไทยไว้โชว์ ("ครีม")
+  swatch: string; // hex ของจุดสี (= color เฉลี่ยจากรูป)
+  active: boolean; // เป็นสีที่สวมอยู่ตอนนี้ไหม
 }
 
 export interface WardrobeState {

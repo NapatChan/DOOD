@@ -31,6 +31,10 @@ interface RawProduct {
   fit?: Fit;
   aspect?: number;
   scale?: number;
+  variant_group?: string; // Supabase: คอลัมน์จับกลุ่มสี (group เป็นคำสงวน SQL เลยใช้ชื่อนี้)
+  group?: string; // snapshot: ใช้ชื่อสั้น
+  color_name?: string; // Supabase
+  colorName?: string; // snapshot
 }
 
 // map raw → ClothingItem (รูป: ใช้ image_url ถ้ามี ไม่งั้น resolve path เดิมจาก glob)
@@ -48,6 +52,8 @@ function toItem(p: RawProduct): ClothingItem {
     fit: p.fit || undefined,
     aspect: p.aspect || undefined,
     scale: p.scale || undefined,
+    group: p.variant_group || p.group || undefined,
+    colorName: p.color_name || p.colorName || undefined,
   };
 }
 

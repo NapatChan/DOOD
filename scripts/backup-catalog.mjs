@@ -47,6 +47,8 @@ async function main() {
     if (row.fit) p.fit = row.fit;
     if (row.aspect != null) p.aspect = row.aspect;
     if (row.scale != null) p.scale = row.scale;
+    if (row.variant_group) p.group = row.variant_group;
+    if (row.color_name) p.colorName = row.color_name;
     products.push(p);
     i += 1;
     process.stdout.write(`\r  โหลดรูป ${i}/${rows.length}`);

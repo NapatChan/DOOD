@@ -113,6 +113,8 @@ function toAdminProduct(row) {
   if (row.fit) p.fit = row.fit;
   if (row.aspect != null) p.aspect = row.aspect;
   if (row.scale != null) p.scale = row.scale;
+  if (row.variant_group) p.group = row.variant_group;
+  if (row.color_name) p.colorName = row.color_name;
   return p;
 }
 
@@ -215,6 +217,8 @@ export function adminApiPlugin() {
               fit: (await resolveFit(processed.buffer, body.category, body.fit)) || null,
               aspect: body.category === 'pants' ? await imageAspect(processed.buffer) : null,
               scale: null,
+              variant_group: (body.group || '').trim() || null,
+              color_name: (body.colorName || '').trim() || null,
               sort_order: await nextSortOrder(),
               is_active: true,
             };
@@ -250,6 +254,8 @@ export function adminApiPlugin() {
               if (body.buyUrl !== undefined) patch.buy_url = String(body.buyUrl).trim();
               if (body.style !== undefined) patch.style = body.style || '';
               if (body.gender !== undefined) patch.gender = normGender(body.gender);
+              if (body.group !== undefined) patch.variant_group = String(body.group).trim() || null;
+              if (body.colorName !== undefined) patch.color_name = String(body.colorName).trim() || null;
               if (body.scale !== undefined) {
                 const s = normScale(body.scale);
                 patch.scale = s && s !== 1 ? s : null;

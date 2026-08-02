@@ -34,6 +34,13 @@
 
 ## §3. ⏭️ ถัดไป (ทำอะไรต่อ)
 
+> ✅ **2026-08-02 เสร็จในเครื่อง (ยังไม่ push) — UX ปัดสนุก + ซื้อง่าย** (แผน: [elegant-watching-umbrella](~/.claude/plans/elegant-watching-umbrella.md))
+> - [x] 🎲 **สุ่มลำดับปัด (รายชิ้น เต็ม)** — `shuffleItems()` ใน useWardrobe สุ่ม Fisher-Yates ครั้งเดียวตอนโหลด (เปลี่ยนจากสุ่มระดับกลุ่ม เพราะสีติดกันทำให้ปัดรู้สึกเหมือนเรียง — พอมีแทบสีแล้วไม่ต้องเก็บสีติดกัน)
+> - [x] 🎨 **แทบเลือกสี (color swatch)** — field `variant_group`+`color_name` ครบเส้นทาง · `ColorSwatches.tsx` (สีจุด=color hex เฉลี่ย) · backfill 66/66 ชิ้น (หมวก Y2K แยก 6 รุ่นอัตโนมัติ) · เทส Playwright ผ่าน (เสื้อ 9 สี, OLYMPIA 6 สี, กดเปลี่ยนสีได้)
+> - [x] ⚪ **เอา dots ออก** ทั้ง 2 จุด (แทบสีมาแทน — เดสก์ท็อปโชว์ใต้มาสคอต, มือถือลอยบนเลเยอร์ `lg:hidden`)
+> - [ ] 🧑 **รัน SQL ALTER เสร็จแล้ว** (variant_group + color_name) · DB backfill live แล้ว
+> - ⏳ **ค้าง**: (1) push (รอสั่ง) (2) แทบสีของ**หมวก**ซ้อนบนตัวหมวก (กล่องเตี้ย) — พิจารณาย้ายตำแหน่ง (3) `npm run backup` sync snapshot ก่อน push
+
 > 🔍 **ผล health-check 2026-07-28**: ระบบแข็งแรง+ปลอดภัยดี (RLS กันเขียนครบ, service key ไม่รั่วใน bundle/git). ปัญหาหลัก = **ยังหาเงินไม่ได้ + แชร์ไม่ได้ + วัดผลไม่ได้** (ไม่ใช่ปัญหาเทคนิค). ลำดับแนะนำ: B2 → affiliate → แชร์/OG → analytics
 
 **ลำดับ 1 — B2 ✅ เสร็จในเครื่องแล้ว** (แอดมินเขียนขึ้น Supabase — เลิก push เพื่อแก้สินค้า)
@@ -79,6 +86,9 @@
 
 ## §5. 📝 Change log (ใหม่สุดอยู่บน)
 
+- **2026-08-02** — 🎨 **แทบเลือกสี + สุ่มลำดับปัด + เอา dots ออก (เสร็จในเครื่อง, ยังไม่ push)**: เพิ่มคอลัมน์ `variant_group`+`color_name` (รัน ALTER ใน Supabase) ครบเส้นทางโค้ด · `ColorSwatches.tsx` โชว์จุดสีของสินค้ากลุ่มเดียวกัน (สีจุด=color เฉลี่ยจากรูป) กดเปลี่ยนสีทันทีไม่ต้องปัด · `shuffleItems()` สุ่มรายชิ้นเต็มตอนโหลด (เดิมสุ่มระดับกลุ่ม แต่ปัดรู้สึกเหมือนเรียง เลยเปลี่ยนเป็นสุ่มเต็ม) · เอา dots ออกทั้งมือถือ+เดสก์ท็อป · `backfill-variants.mjs` เติมกลุ่ม 66/66 (หมวก Y2K แยก 6 รุ่นตามชื่อ, เสื้อสายเดี่ยว fallback จากชื่อ) · tsc+build+Playwright ผ่าน · **เหลือ: push + อาจย้ายตำแหน่งแทบสีหมวก + npm run backup**
+- **2026-08-02** — 📅 **วางแผนพรุ่งนี้** (สุ่มลำดับปัด + แทบเลือกสี + เอา dots ออก): สำรวจโค้ด — dots อยู่ 2 จุด (SwipeableLayer มือถือ + StageCaption เดสก์ท็อป) · ลำดับปัดมาจาก sort_order (ไม่มี sort ฝั่ง client) · **พบ CSV มี `group`+`color` อยู่แล้วแต่ bulk-add ทิ้ง** → variant ต่อยอดได้. เขียนแผนเต็มใน `~/.claude/plans/elegant-watching-umbrella.md` + ลง §3
+- **2026-08-02** — 🚀 **push (`4ba47ae`)**: source images ชุดใหม่ (new-products/b2, 43 รูป+5 csv) + อัปเดต status → 66 ชิ้น (การแก้สินค้าอยู่ใน Supabase live แล้ว)
 - **2026-08-02** — 🧦 **สินค้าชุดใหม่ (รวม 66 ชิ้น: หมวก 25 · เสื้อ 29 · กางเกง 12)**: เสื้อทุกตัว scale=0.74 (flat) · หมวกแก้ bg — ตัดเงาลอยใต้หมวก (LOS ANGELESS blob crop) + ตัดติ่ง/สายที่ยื่นข้าง (Rosé Frantz, PARIS ฯลฯ — crop คอลัมน์ริมที่ coverage<22%) · เสื้อ 1 ตัว bg กินเนื้อ (top-msakxttraq เสื้อผูกเชือกเขียว ทึบ 15% — ยังไม่แก้ รอ user) · แก้ทั้งหมดใน Supabase live แล้ว (ไม่ต้อง push)
 - **2026-08-01** — 🚀 **push แชร์+ล็อกอิน (`b1e82f0`)** → live บน Vercel · ตั้ง Supabase Auth URL config (localhost + dood-red.vercel.app) + ตาราง saved_looks เสร็จ
 - **2026-08-01** — 🔗☁️ **แชร์ลุค + ระบบล็อกอิน (Magic Link)**: ปุ่มแชร์เข้ารหัสลุคใน URL (`?l=`) + Web Share/ก๊อปลิงก์ + เปิดลิงก์ใส่ลุคทันที · OG meta + favicon · `@supabase/supabase-js` + **Magic Link** (เปลี่ยนจาก OTP เพราะแก้เทมเพลตต้องมี SMTP ก่อน — magic link ใช้อีเมลในตัวได้เลย, flow=implicit เผื่อเปิดลิงก์คนละเบราว์เซอร์) · savedLooksStore เป็น guest(localStorage)/user(Supabase) ย้ายข้อมูลตอนล็อกอิน · ตาราง `saved_looks` + RLS (`sql/saved_looks.sql`) · guest+UI เทสต์ผ่าน+build ผ่าน · **ก่อน launch: ตั้ง SMTP (Resend/Gmail)** เพราะอีเมลในตัวจำกัดโควตา

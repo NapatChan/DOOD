@@ -29,7 +29,6 @@ export default function App() {
     selectedItems,
     itemsById,
     totalPrice,
-    counts,
     genderFilter,
     setGenderFilter,
     selectLayer,
@@ -38,6 +37,8 @@ export default function App() {
     shuffle,
     toggleHidden,
     applyLook,
+    variants,
+    selectVariant,
   } = useWardrobe();
   const selectedLayer = state.selectedLayer;
   const layerHidden = state.hidden[selectedLayer];
@@ -325,8 +326,8 @@ export default function App() {
           <Mascot
             selectedItems={selectedItems}
             selectedLayer={selectedLayer}
-            selectedIndex={state.currentIndex[selectedLayer]}
-            selectedTotal={counts[selectedLayer]}
+            variants={variants}
+            onSelectVariant={selectVariant}
             hidden={state.hidden}
             dragX={dragX}
             direction={swipeDir}
@@ -344,8 +345,8 @@ export default function App() {
           <StageCaption
             layer={selectedLayer}
             item={selectedItems[selectedLayer]}
-            index={state.currentIndex[selectedLayer]}
-            total={counts[selectedLayer]}
+            variants={variants}
+            onSelectVariant={selectVariant}
             hidden={layerHidden}
           />
         </div>

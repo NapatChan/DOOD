@@ -17,7 +17,8 @@
 //   buyUrl    ลิงก์สั่งซื้อ (เว้นได้)
 //   scale     ตัวคูณขนาด (เว้น=1)
 //   removeBg  auto/on/off (เว้น=auto)
-//   group,color  ใช้ตอน agent ตั้งชื่อ (สคริปต์นี้ไม่สนใจ)
+//   group     คีย์จับกลุ่มสินค้าตัวเดียวกันหลายสี → ทำแทบเลือกสี (สินค้ารุ่นเดียวกันใส่ group เดียวกัน)
+//   color     ชื่อสีไทย ("ครีม") ไว้โชว์ในแทบเลือกสี
 //
 // หมายเหตุ: สคริปต์นี้ยิงตามที่กรอกใน csv ตรง ๆ ไม่เดาจากรูป (การเดาเป็นหน้าที่ของ agent
 // dood-admin-filler ที่จะเติมช่องว่างให้ก่อนแล้วค่อยเรียกสคริปต์นี้)
@@ -94,6 +95,8 @@ function buildInput(rec, imageBase64) {
   if (rec.gender) input.gender = GENDER_MAP[rec.gender] || rec.gender;
   if (category === 'pants' && rec.fit) input.fit = FIT_MAP[rec.fit] || 'auto';
   if (rec.scale) input.scale = Number(rec.scale);
+  if (rec.group) input.group = rec.group; // จับกลุ่มสีตัวเดียวกัน → แทบเลือกสี
+  if (rec.color) input.colorName = rec.color; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี
   return input;
 }
 

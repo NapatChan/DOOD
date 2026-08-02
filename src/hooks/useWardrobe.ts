@@ -4,6 +4,7 @@ import {
   CATEGORIES,
   type Category,
   type ClothingItem,
+  type ColorVariant,
   type Gender,
   type GenderFilter,
   type WardrobeState,
@@ -12,6 +13,18 @@ import {
 // วน index ให้อยู่ในช่วง [0, len) เสมอ (รองรับ loop ทั้งสองทิศ)
 function wrap(index: number, len: number): number {
   return ((index % len) + len) % len;
+}
+
+// สุ่มลำดับ "รายชิ้น" (Fisher-Yates) — ปัดแต่ละครั้งเจอของต่างกันจริง ไม่น่าเบื่อ
+// สีของสินค้ากลุ่มเดียวกันกระจายทั่วลิสต์ก็ไม่เป็นไร — แทบเลือกสีจับกลุ่มจาก group ให้อยู่แล้ว
+// สุ่มครั้งเดียวตอนโหลด (เก็บผลไว้ ไม่สุ่มซ้ำทุก render → ชิ้นที่สวมอยู่ไม่กระโดด)
+function shuffleItems(list: ClothingItem[]): ClothingItem[] {
+  const out = list.slice();
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
 }
 
 const placeholder = (cat: Category): ClothingItem => ({
@@ -36,7 +49,17 @@ export function useWardrobe() {
   useEffect(() => {
     let alive = true;
     getCatalog().then((c) => {
-      if (alive) setItems(c);
+      if (!alive) return;
+      // สุ่มลำดับรายชิ้นครั้งเดียวตอนโหลด — เข้ามาแต่ละครั้งเจอลำดับใหม่ ไม่น่าเบื่อ
+      setItems(
+        CATEGORIES.reduce(
+          (acc, cat) => {
+            acc[cat] = shuffleItems(c[cat]);
+            return acc;
+          },
+          {} as Record<Category, ClothingItem[]>,
+        ),
+      );
     });
     return () => {
       alive = false;
@@ -197,6 +220,29 @@ export function useWardrobe() {
     return map;
   }, [items]);
 
+  // ตัวเลือกสีของ "ชิ้นที่สวมอยู่" ในเลเยอร์ที่เลือก — ชิ้นอื่นในกลุ่ม (group) เดียวกัน
+  // คืน [] ถ้าไม่มี group หรือกลุ่มมีสีเดียว (ไม่ต้องโชว์แทบสี)
+  const variants = useMemo<ColorVariant[]>(() => {
+    if (!filteredItems) return [];
+    const layer = state.selectedLayer;
+    const list = filteredItems[layer];
+    const curIdx = wrap(state.currentIndex[layer], list.length);
+    const group = list[curIdx]?.group;
+    if (!group) return [];
+    const sibs: ColorVariant[] = [];
+    list.forEach((it, i) => {
+      if (it.group === group) {
+        sibs.push({ index: i, colorName: it.colorName, swatch: it.color, active: i === curIdx });
+      }
+    });
+    return sibs.length > 1 ? sibs : [];
+  }, [filteredItems, state.currentIndex, state.selectedLayer]);
+
+  // กดเลือกสีในแทบ → กระโดดไปชิ้นนั้นของเลเยอร์ที่เลือก (ไม่นับเป็นการปัด)
+  const selectVariant = useCallback((index: number) => {
+    setState((s) => ({ ...s, currentIndex: { ...s.currentIndex, [s.selectedLayer]: index } }));
+  }, []);
+
   // จำนวนตัวเลือกของแต่ละหมวด (ใช้ทำ dots บอกตำแหน่ง) — ตามที่กรอง
   const counts = useMemo(
     () =>
@@ -225,5 +271,7 @@ export function useWardrobe() {
     shuffle,
     toggleHidden,
     applyLook,
+    variants,
+    selectVariant,
   };
 }

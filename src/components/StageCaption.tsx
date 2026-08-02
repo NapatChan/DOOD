@@ -1,16 +1,17 @@
-import type { Category, ClothingItem } from '../types';
+import type { Category, ClothingItem, ColorVariant } from '../types';
 import { CATEGORY_LABEL } from '../types';
+import ColorSwatches from './ColorSwatches';
 
 interface StageCaptionProps {
   layer: Category;
   item: ClothingItem;
-  index: number;
-  total: number;
+  variants: ColorVariant[];
+  onSelectVariant: (index: number) => void;
   hidden: boolean;
 }
 
-// ป้ายใต้มาสคอต: ชื่อชิ้นปัจจุบัน + จุดบอกตำแหน่ง + ตัวช่วยสอนใช้
-export default function StageCaption({ layer, item, index, total, hidden }: StageCaptionProps) {
+// ป้ายใต้มาสคอต: ชื่อชิ้นปัจจุบัน + แทบเลือกสี + ตัวช่วยสอนใช้
+export default function StageCaption({ layer, item, variants, onSelectVariant, hidden }: StageCaptionProps) {
   if (hidden) {
     return (
       <div className="flex flex-col items-center gap-2">
@@ -32,17 +33,8 @@ export default function StageCaption({ layer, item, index, total, hidden }: Stag
         </span>
       </div>
 
-      {/* dots บอกว่าอยู่ชิ้นที่เท่าไรจากทั้งหมด */}
-      <div className="flex items-center gap-1.5">
-        {Array.from({ length: total }).map((_, i) => (
-          <span
-            key={i}
-            className={`h-1.5 rounded-full transition-all ${
-              i === index ? 'w-4 bg-neutral-800' : 'w-1.5 bg-neutral-300'
-            }`}
-          />
-        ))}
-      </div>
+      {/* แทบเลือกสี (แทน dots เดิม) — โชว์เมื่อสินค้ากลุ่มนี้มีหลายสี */}
+      <ColorSwatches variants={variants} onSelect={onSelectVariant} tone="plain" />
 
       <p className="text-xs text-neutral-400 md:text-sm">
         ปัดซ้าย/ขวาเพื่อเปลี่ยน{CATEGORY_LABEL[layer]}

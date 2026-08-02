@@ -1,5 +1,5 @@
 import type { MotionValue } from 'framer-motion';
-import type { Category, ClothingItem } from '../types';
+import type { Category, ClothingItem, ColorVariant } from '../types';
 import { CATEGORIES, LAYER_GROW } from '../types';
 import ClothingLayer from './ClothingLayer';
 import SwipeableLayer from './SwipeableLayer';
@@ -7,9 +7,9 @@ import SwipeableLayer from './SwipeableLayer';
 interface MascotProps {
   selectedItems: Record<Category, ClothingItem>;
   selectedLayer: Category;
-  /** ตำแหน่ง/จำนวนชิ้นของเลเยอร์ที่เลือก (ใช้วาด dots) */
-  selectedIndex: number;
-  selectedTotal: number;
+  /** ตัวเลือกสีของเลเยอร์ที่เลือก (ใช้วาดแทบเลือกสี) */
+  variants: ColorVariant[];
+  onSelectVariant: (index: number) => void;
   hidden: Record<Category, boolean>;
   /** gesture ระดับทั้งจอ (ดู App) */
   dragX: MotionValue<number>;
@@ -24,8 +24,8 @@ interface MascotProps {
 export default function Mascot({
   selectedItems,
   selectedLayer,
-  selectedIndex,
-  selectedTotal,
+  variants,
+  onSelectVariant,
   hidden,
   dragX,
   direction,
@@ -47,8 +47,8 @@ export default function Mascot({
               category={cat}
               item={selectedItems[cat]}
               grow={LAYER_GROW[cat]}
-              index={selectedIndex}
-              total={selectedTotal}
+              variants={variants}
+              onSelectVariant={onSelectVariant}
               hidden={hidden[cat]}
               dragX={dragX}
               direction={direction}

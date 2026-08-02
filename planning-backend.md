@@ -67,6 +67,8 @@ create table products (
   fit         text check (fit in ('long','short')),
   aspect      numeric,
   scale       numeric,
+  variant_group text,                               -- จับกลุ่มสินค้าตัวเดียวกันหลายสี → แทบเลือกสี (group เป็นคำสงวน)
+  color_name  text,                                 -- ชื่อสีไทยไว้โชว์ในแทบเลือกสี ("ครีม")
   sort_order  int  not null default 0,             -- migration ตั้งตามลำดับเดิมใน json
   is_active   boolean not null default true,       -- ★ soft delete (ดูเหตุผลล่าง)
   created_at  timestamptz not null default now(),
