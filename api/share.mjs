@@ -3,15 +3,19 @@
 //   คนจริง → redirect เข้าแอป /?l=... ทันที (ใส่ลุคนั้นให้เลย)
 import { parseLook, fetchItems, lookMeta, lookQuery } from './_look.mjs';
 
-const BASE = 'https://dood-red.vercel.app';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 export default async function handler(req, res) {
+  // อ่านโดเมนจาก request เอง → ใช้ได้ทุกโดเมน (doodstyles.com / vercel เดิม) ไม่ต้องแก้โค้ดถ้าย้าย
+  const proto = req.headers['x-forwarded-proto'] || 'https';
+  const host = req.headers['x-forwarded-host'] || req.headers.host || 'doodstyles.com';
+  const BASE = `${proto}://${host}`;
+
   const look = parseLook(req.query);
 
   // ค่าเริ่มต้น (ลุคไม่ถูกต้อง) — ใช้การ์ดนิ่งเดิม
   let title = 'DOOD — Make it your style';
-  let desc = 'แต่งตัวมาสคอต ปัดเปลี่ยนชุด จัดลุคที่ใช่แล้วช้อปได้เลย';
+  let desc = 'ปัดแต่งชุด จัดลุคที่ใช่ ช้อปได้เลย';
   let image = `${BASE}/og.png`;
   let imgW = 1200, imgH = 630;
   let appUrl = `${BASE}/`;

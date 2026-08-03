@@ -78,8 +78,8 @@ export function lookMeta({ items, hidden }, byId) {
   const total = worn.reduce((s, c) => s + (Number(byId[items[c]].price) || 0), 0);
   const names = worn.map((c) => byId[items[c]].name);
   return {
-    title: 'ดูลุคที่ฉันจัดใน DOOD 👗✨',
-    desc: names.length ? `${names.join(' · ')} — รวม ${baht(total)}` : 'แต่งตัวมาสคอต ปัดเปลี่ยนชุด จัดลุคที่ใช่แล้วช้อปได้เลย',
+    title: 'ค้นหาลุคที่ใช่ใน DOOD',
+    desc: names.length ? `${names.join(' · ')} — รวม ${baht(total)}` : 'ปัดแต่งชุด จัดลุคที่ใช่ ช้อปได้เลย',
     total,
   };
 }
@@ -98,7 +98,7 @@ function backgroundSvg(totalPrice) {
   ${t(265, 32, 400, '#9a938c', 1, 'Make it your style')}
   ${t(1688, 28, 400, '#b0a7ae', 5, 'TOTAL LOOK')}
   ${t(1788, 92, 900, '#1a1a1a', 0, baht(totalPrice))}
-  ${t(1848, 26, 400, '#c3bcbf', 1, 'dood-red.vercel.app')}
+  ${t(1848, 26, 400, '#c3bcbf', 1, 'doodstyles.com')}
 </svg>`;
 }
 
