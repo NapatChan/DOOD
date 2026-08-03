@@ -68,7 +68,7 @@ export default function App() {
   const prevLoggedInRef = useRef(auth.isLoggedIn);
   useEffect(() => {
     if (auth.isLoggedIn && !prevLoggedInRef.current) {
-      showToast('เข้าสู่ระบบแล้ว ☁️ ลุคเก็บถาวรแล้ว');
+      showToast('เข้าสู่ระบบแล้ว ☁️ เก็บลุคโปรดไว้ให้แล้ว');
       setAuthOpen(false);
     }
     prevLoggedInRef.current = auth.isLoggedIn;

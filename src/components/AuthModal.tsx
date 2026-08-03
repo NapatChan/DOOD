@@ -79,7 +79,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
             {step === 'email' ? (
               <>
                 <p className="mb-4 text-sm text-neutral-500">
-                  เก็บลุคไว้ถาวร + ดูข้ามเครื่อง — ใส่อีเมลแล้วเราส่งลิงก์เข้าสู่ระบบไปให้
+                  เก็บลุคโปรดของคุณไว้ไม่ให้หาย — ใส่อีเมลแล้วเราส่งลิงก์เข้าสู่ระบบไปให้
                 </p>
                 <input
                   ref={inputRef}

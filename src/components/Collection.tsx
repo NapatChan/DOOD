@@ -269,8 +269,8 @@ export default function Collection({
                     className="flex w-full items-center gap-2 rounded-2xl bg-neutral-900 px-4 py-2.5 text-left text-sm text-white transition active:scale-[0.99]"
                   >
                     <span>☁️</span>
-                    <span className="flex-1 font-semibold">เข้าสู่ระบบเพื่อเก็บลุคถาวร</span>
-                    <span className="text-xs text-white/60">ดูข้ามเครื่อง →</span>
+                    <span className="flex-1 font-semibold">เข้าสู่ระบบเก็บลุคโปรด</span>
+                    <span className="text-xs text-white/60">ไม่ให้หาย →</span>
                   </button>
                 )}
               </div>
