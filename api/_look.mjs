@@ -2,6 +2,23 @@
 // ใช้ร่วมกันโดย api/og.mjs (สร้างรูป) + api/share.mjs (สร้าง HTML meta)
 // (ไฟล์ขึ้นต้น _ = Vercel ไม่ถือเป็น route, เป็นแค่ helper)
 import sharp from 'sharp';
+import { Resvg } from '@resvg/resvg-js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// ฟอนต์ Kanit (bundle มา) — Vercel serverless ไม่มีฟอนต์ในระบบเลย ต้องป้อนไฟล์ให้ resvg
+// (เรนเดอร์ <text> ด้วย resvg + ฟอนต์นี้ → text ครบ ไม่เป็นกล่อง □ · มี ฿ ด้วย)
+const FONT_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '_fonts');
+const FONT_FILES = [path.join(FONT_DIR, 'Kanit-Black.ttf'), path.join(FONT_DIR, 'Kanit-Regular.ttf')];
+
+// เรนเดอร์ SVG (พื้นหลัง+ข้อความ) → PNG ด้วย resvg (จัด layout ข้อความเองจากฟอนต์ที่ป้อน)
+function renderSvg(svg) {
+  return new Resvg(svg, {
+    font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Kanit' },
+  })
+    .render()
+    .asPng();
+}
 
 const CATEGORIES = ['hat', 'top', 'pants'];
 const SEP = '.';
@@ -67,24 +84,22 @@ export function lookMeta({ items, hidden }, byId) {
   };
 }
 
-// ---------- พื้นหลัง + ข้อความ (Latin/ตัวเลขเท่านั้น — กันฟอนต์ไทยเพี้ยนบน Vercel) ----------
+// ---------- พื้นหลัง + ข้อความ (ฟอนต์ Kanit ผ่าน resvg — มี ฿ + ไม่พึ่งฟอนต์ระบบ) ----------
 function backgroundSvg(totalPrice) {
   const cx = W / 2;
-  return Buffer.from(`
-<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f7f5f2"/>
-      <stop offset="1" stop-color="#eae7e2"/>
-    </linearGradient>
-  </defs>
+  const t = (y, size, weight, fill, ls, s) =>
+    `<text x="${cx}" y="${y}" text-anchor="middle" font-family="Kanit" font-weight="${weight}" font-size="${size}" letter-spacing="${ls}" fill="${fill}">${esc(s)}</text>`;
+  return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#f7f5f2"/><stop offset="1" stop-color="#eae7e2"/>
+  </linearGradient></defs>
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
-  <text x="${cx}" y="215" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="900" fill="#1a1a1a" letter-spacing="-2">DOOD</text>
-  <text x="${cx}" y="265" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="500" fill="#9a938c" letter-spacing="1">Make it your style</text>
-  <text x="${cx}" y="1690" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" fill="#b0a7ae" letter-spacing="5">TOTAL LOOK</text>
-  <text x="${cx}" y="1785" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="900" fill="#1a1a1a">${esc(baht(totalPrice))}</text>
-  <text x="${cx}" y="1845" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="600" fill="#c3bcbf" letter-spacing="1">dood-red.vercel.app</text>
-</svg>`);
+  ${t(215, 96, 900, '#1a1a1a', -2, 'DOOD')}
+  ${t(265, 32, 400, '#9a938c', 1, 'Make it your style')}
+  ${t(1688, 28, 400, '#b0a7ae', 5, 'TOTAL LOOK')}
+  ${t(1788, 92, 900, '#1a1a1a', 0, baht(totalPrice))}
+  ${t(1848, 26, 400, '#c3bcbf', 1, 'dood-red.vercel.app')}
+</svg>`;
 }
 
 async function loadAspect(buf) {
@@ -136,5 +151,7 @@ export async function renderLook({ items, hidden }, byId) {
     bandTop += bandH;
   }
 
-  return sharp(backgroundSvg(total)).png().composite(layers).png().toBuffer();
+  // เรนเดอร์พื้นหลัง+ข้อความด้วย resvg (ฟอนต์ครบ) → แล้ว composite ชุดด้วย sharp
+  const bgPng = renderSvg(backgroundSvg(total));
+  return sharp(bgPng).composite(layers).png().toBuffer();
 }
