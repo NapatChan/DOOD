@@ -28,6 +28,14 @@ export const W = 1080, H = 1920; // 9:16 IG story / TikTok
 const LAYER_GROW = { hat: 0.8, top: 2.0, pants: 3.0 };
 const ANCHOR = { hat: 'bottom', top: 'center', pants: 'top' };
 
+// ท่อนล่าง "ทรงสั้น" (ขาสั้น/กระโปรง) — คุมด้วยความสูง = % ของแถบ (เหมือนเว็บ src/types)
+// ไม่งั้น contain จะบานเต็มคอลัมน์ ใหญ่กว่าลำตัว · รูปยิ่งกว้าง (aspect สูง) ยิ่งเตี้ยลง
+const SHORT_FILL_K = 48, SHORT_FILL_MIN = 24, SHORT_FILL_MAX = 38;
+function shortBottomHeightPct(aspect) {
+  if (!aspect || aspect <= 0) return 34;
+  return Math.min(SHORT_FILL_MAX, Math.max(SHORT_FILL_MIN, SHORT_FILL_K / aspect));
+}
+
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const baht = (n) => '฿' + Number(n || 0).toLocaleString('en-US');
 
@@ -125,7 +133,7 @@ export async function renderLook({ items, hidden }, byId) {
       const r = await fetch(it.image_url);
       if (!r.ok) continue;
       const buf = Buffer.from(await r.arrayBuffer());
-      buffers[c] = { buf, aspect: await loadAspect(buf), scale: Number(it.scale) || 1 };
+      buffers[c] = { buf, aspect: await loadAspect(buf), scale: Number(it.scale) || 1, fit: it.fit };
       total += Number(it.price) || 0;
       wornCount += 1;
     } catch { /* ข้ามชิ้นที่โหลดไม่ได้ */ }
@@ -139,7 +147,10 @@ export async function renderLook({ items, hidden }, byId) {
     const bandH = (Hc * LAYER_GROW[c]) / growTotal;
     const g = buffers[c];
     if (g) {
-      let h = Math.min(bandH, Wc / g.aspect) * g.scale;
+      // ทรงสั้น: สูง = % ของแถบ (auto กว้าง) · ทรงอื่น: contain ในกล่อง bandH×Wc
+      const h = (c === 'pants' && g.fit === 'short')
+        ? bandH * (shortBottomHeightPct(g.aspect) / 100) * g.scale
+        : Math.min(bandH, Wc / g.aspect) * g.scale;
       const w = h * g.aspect;
       let top;
       if (ANCHOR[c] === 'bottom') top = bandTop + bandH - h;
