@@ -86,7 +86,7 @@ export function lookMeta({ items, hidden }, byId) {
   const total = worn.reduce((s, c) => s + (Number(byId[items[c]].price) || 0), 0);
   const names = worn.map((c) => byId[items[c]].name);
   return {
-    title: 'ค้นหาลุคที่ใช่ใน DOOD',
+    title: 'ค้นหาลุคที่ใช่ใน DOOD ✨',
     desc: names.length ? `${names.join(' · ')} — รวม ${baht(total)}` : 'ปัดแต่งชุด จัดลุคที่ใช่ ช้อปได้เลย',
     total,
   };

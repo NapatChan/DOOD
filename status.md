@@ -2,15 +2,16 @@
 
 > **ไฟล์นี้ = สถานะปัจจุบันของโปรเจกต์: ทำถึงไหนแล้ว / ต่อไปทำอะไร**
 > 📌 **กฎ: อัปเดตไฟล์นี้ทุกครั้งที่มีการเปลี่ยนแปลง** (เสร็จงาน / เริ่มงานใหม่ / push / ตัดสินใจ) + เพิ่มบรรทัดใน §5 Change log
-> อัปเดตล่าสุด: 2026-07-31 (Backend B2 เสร็จในเครื่อง)
+> อัปเดตล่าสุด: 2026-08-04 (โดเมนใหม่ doodstyles.com + แชร์ไดนามิก live + Vercel Analytics)
 
 ---
 
 ## §1. 🟢 สถานะ Git — sync แล้ว
 
-- **push ล่าสุด: `3d2d274`** — fix การ์ดแชร์ text เป็นกล่อง (resvg + ฟอนต์ Kanit)
-- เว็ปจริง Vercel = โค้ดล่าสุด · ไม่มีงานค้าง push · rotate key เสร็จ ✅
-- ✅ **ระบบแชร์ไดนามิกทำงานเต็มบน Vercel** — ยืนยันรูปสด: DOOD/ราคา/text ครบ + ชุดจริง + ฿ (sharp+resvg+ฟอนต์ Kanit)
+- **push ล่าสุด: `a5aef01`** — fix การ์ดแชร์: กางเกงทรงสั้นไม่บานเต็มคอลัมน์ (+ ค้าง: title ✨ + Analytics + status นี้)
+- 🌐 **โดเมนใหม่ `doodstyles.com`** (Hostinger → Vercel nameservers) · SSL ออกแล้ว · www เป็น primary (apex เด้งไป www)
+- ✅ **ระบบแชร์ไดนามิกทำงานเต็มบน production** — ยืนยันรูปสด: DOOD/ราคา/text ครบ + ชุดจริง + ฿ · copy ใหม่ "ค้นหาลุคที่ใช่ใน DOOD ✨"
+- 📊 **Vercel Analytics** ใส่ในโค้ดแล้ว (`<Analytics/>` ใน main.tsx) — ต้องเปิดใน Vercel dashboard → Analytics ด้วย
 
 ---
 
@@ -57,8 +58,8 @@
 
 **ลำดับ 2 — Roadmap เฟส 1: หาเงิน + โต** (ดู [ROADMAP.md](ROADMAP.md))
 - [x] 🧑 สมัคร affiliate Shopee + ใส่ลิงก์ครบ **23/23** (1 ลิงก์/ประเภท → หน้า listing มีทุกสีเป็น variant) → **รายได้ปลดล็อกแล้ว**
-- [ ] 🤖 ปุ่มแชร์ลุค (Web Share API) + SEO/OG meta + favicon — ตอนนี้ `index.html` มีแค่ `<title>` แชร์ไปขึ้นการ์ดเปล่า
-- [ ] 🤖 Analytics เบาๆ (Vercel Analytics — ฟรี, ไม่ต้อง cookie banner) → เริ่มเก็บ traffic/ชิ้นฮิตก่อนตัดสินใจเฟสถัดไป
+- [x] 🤖 ปุ่มแชร์ลุค + **การ์ดแชร์ไดนามิก** (9:16 IG/TikTok, sharp+resvg) + OG meta ต่อลุค + favicon — live บน doodstyles.com
+- [x] 🤖 Analytics (Vercel Analytics — ฟรี, ไม่ต้อง cookie banner) ใส่โค้ดแล้ว · **เหลือเปิดสวิตช์ใน Vercel dashboard**
 
 **ลำดับ 3 — งานเก็บตก (เล็ก, ไม่เร่ง)**
 - [ ] 🧑 เช็กเว็ปจริงหลัง deploy B1: DevTools → Network เห็น request ไป `*.supabase.co` แล้ว**จด URL เว็ปจริงไว้ใน §6** (ตอนนี้ยังไม่มีที่ไหนจดเลย)
@@ -87,6 +88,10 @@
 ---
 
 ## §5. 📝 Change log (ใหม่สุดอยู่บน)
+
+- **2026-08-04** — 📊 **Vercel Analytics + อัปเดตเอกสาร**: ติดตั้ง `@vercel/analytics` + `<Analytics/>` ใน main.tsx (build ผ่าน) → เริ่มเก็บ traffic/pageview · **ต้องเปิดใน Vercel dashboard → Analytics** ถึงจะเก็บจริง · อัปเดต status.md ให้ตรงปัจจุบัน (โดเมน/แชร์/ขาสั้น)
+- **2026-08-04** — 🩳 **fix การ์ดแชร์ กางเกงทรงสั้นบานเต็มคอลัมน์** (push `a5aef01`): พอร์ตสูตร `shortBottomHeightPct` (48/aspect%, clamp 24-38) จาก src/types → api/_look.mjs · fit=short คุมด้วยความสูง เหมือนเว็บ · fit=long ไม่กระทบ · เทส local + ยืนยันสด production
+- **2026-08-04** — ✨ **ปรับ copy แชร์ + โดเมนใหม่ `doodstyles.com`** (push `408010f`): จด doodstyles.com (Hostinger) → ชี้ nameservers ไป Vercel → SSL ออก · share.mjs อ่านโดเมนจาก request เอง (ไม่ hardcode) · title="ค้นหาลุคที่ใช่ใน DOOD ✨" · desc="ปัดแต่งชุด จัดลุคที่ใช่ ช้อปได้เลย" ทุกจุด (og/twitter/meta/title/fallback) · การ์ดโชว์ doodstyles.com · ตั้ง Supabase Auth URL เป็นโดเมนใหม่
 
 - **2026-08-03** — 🐛 **fix การ์ดแชร์ text เป็นกล่อง □ บน Vercel**: deploy แรก serverless ทำงาน (api/og คืน PNG) แต่ **Vercel ไม่มีฟอนต์ระบบ** → `<text>` ผ่าน librsvg เป็นกล่อง · ลอง opentype→path เจอ **NaN ในบาง glyph ของ Kanit** (บั๊ก opentype v2, ทั้ง librsvg+resvg ตัด path ที่ NaN) → เปลี่ยนไป **@resvg/resvg-js เรนเดอร์ `<text>` โดยป้อนไฟล์ฟอนต์ Kanit ที่ bundle** (Black+Regular, มี ฿) แล้ว composite ชุดด้วย sharp → text ครบทุกบรรทัด · bundle 2 ฟอนต์ ~350KB · เทส local ผ่าน (push `3d2d274`)
 
@@ -129,6 +134,6 @@
 
 ## §6. 🔗 เอกสารที่เกี่ยวข้อง
 
-**เว็ปจริง (production): https://dood-red.vercel.app** · Supabase: `jphtnutfuaeljfamuwbe`
+**เว็ปจริง (production): https://doodstyles.com** (เดิม dood-red.vercel.app ยังใช้ได้) · Supabase: `jphtnutfuaeljfamuwbe` · GitHub: NapatChan/DOOD
 
 [DOOD-INDEX.md](DOOD-INDEX.md) (แผนที่ไฟล์) · [ROADMAP.md](ROADMAP.md) (ภาพรวม) · [planning-backend.md](planning-backend.md) · [planning-ai-agent.md](planning-ai-agent.md) · [planning-frontend.md](planning-frontend.md)
