@@ -36,10 +36,11 @@ export function parseLookFromSearch(
   return { items, hidden };
 }
 
-// URL เต็มไว้แชร์ (origin + path ปัจจุบัน + พารามิเตอร์ลุค)
+// URL เต็มไว้แชร์ — ชี้ไป /s (serverless) เพื่อให้ bot IG/LINE/FB ได้ og:image เป็นรูปลุคจริง
+// คนกดจริงจะถูก redirect เข้า /?l=... ให้ใส่ลุคนั้นทันที (ดู api/share.mjs)
 export function buildShareUrl(
   items: Record<Category, string>,
   hidden: Record<Category, boolean>,
 ): string {
-  return `${window.location.origin}${window.location.pathname}?${encodeLook(items, hidden)}`;
+  return `${window.location.origin}/s?${encodeLook(items, hidden)}`;
 }

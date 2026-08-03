@@ -17,6 +17,7 @@ import {
   updateProduct,
   type AdminProduct,
 } from './api';
+import CropBox from './CropBox';
 import FittingPreview, { type PreviewGarment } from './FittingPreview';
 
 // รูปสินค้ามาจาก Supabase เป็น URL เต็ม (http…) — ใช้ตรง ๆ; ถ้าเป็น path เดิม (สแนปช็อต) prefix ให้
@@ -42,6 +43,8 @@ interface FormState {
   price: string;
   buyUrl: string;
   style: string;
+  group: string; // คีย์จับกลุ่มสินค้าตัวเดียวกันหลายสี (เว้น = ชิ้นเดี่ยว)
+  colorName: string; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี
   gender: Gender;
   fit: Fit | 'auto'; // ทรงท่อนล่าง (auto = เดาจากรูป)
   scale: number; // ตัวคูณขนาดรายชิ้น (1 = ปกติ)
@@ -58,6 +61,8 @@ const EMPTY: FormState = {
   price: '',
   buyUrl: '',
   style: '',
+  group: '',
+  colorName: '',
   gender: 'unisex',
   fit: 'auto',
   scale: 1,
@@ -74,10 +79,21 @@ export default function AdminApp() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [cropping, setCropping] = useState(false);
+  const [applyToGroup, setApplyToGroup] = useState(false); // แก้ขนาดทั้งกลุ่ม
+  const [scalePct, setScalePct] = useState('100'); // ช่องพิมพ์ขนาดเป็น % (แยกจาก form.scale เพื่อพิมพ์ลื่น)
   const fileRef = useRef<HTMLInputElement>(null);
   const formTopRef = useRef<HTMLDivElement>(null);
 
   const isEditing = form.editingId !== null;
+
+  // ชิ้นอื่นในกลุ่มเดียวกัน (variant_group) — ไว้ทำปุ่ม "แก้ขนาดทั้งกลุ่ม"
+  const groupSiblings =
+    isEditing && form.group.trim()
+      ? products.filter(
+          (p) => (p.group?.trim() || '') === form.group.trim() && p.id !== form.editingId,
+        )
+      : [];
 
   // ชิ้นอ้างอิงหมวดอื่น (ตัวแรกของแต่ละหมวด ที่ไม่ใช่ชิ้นที่กำลังแก้) — ไว้เทียบสัดส่วนในพรีวิว
   const references = useMemo(() => {
@@ -125,6 +141,8 @@ export default function AdminApp() {
   function resetForm() {
     setForm(EMPTY);
     setError(null);
+    setApplyToGroup(false);
+    setScalePct('100');
     if (fileRef.current) fileRef.current.value = '';
   }
 
@@ -147,6 +165,8 @@ export default function AdminApp() {
       price: String(p.price),
       buyUrl: p.buyUrl || '',
       style: p.style || '',
+      group: p.group || '',
+      colorName: p.colorName || '',
       gender: p.gender || 'unisex',
       fit: p.fit || 'auto',
       scale: p.scale ?? 1,
@@ -156,6 +176,8 @@ export default function AdminApp() {
       removeBg: true,
     });
     setError(null);
+    setApplyToGroup(false);
+    setScalePct(String(Math.round((p.scale ?? 1) * 100)));
     if (fileRef.current) fileRef.current.value = '';
     formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -179,12 +201,20 @@ export default function AdminApp() {
           price: priceNum,
           buyUrl: form.buyUrl.trim(),
           style: form.style,
+          group: form.group.trim(),
+          colorName: form.colorName.trim(),
           gender: form.gender,
           fit: form.fit,
           scale: form.scale,
           ...(form.imageBase64 ? { imageBase64: form.imageBase64, removeBg } : {}),
         });
-        flash('บันทึกการแก้ไขแล้ว ✓');
+        // แก้ขนาดทั้งกลุ่ม — apply เฉพาะ scale ไปยังชิ้นอื่นในกลุ่มเดียวกัน (ฟิลด์อื่นคงเดิมรายชิ้น)
+        if (applyToGroup && groupSiblings.length) {
+          await Promise.all(groupSiblings.map((s) => updateProduct(s.id, { scale: form.scale })));
+          flash(`บันทึก + ปรับขนาดทั้งกลุ่ม ${groupSiblings.length + 1} ชิ้นแล้ว ✓`);
+        } else {
+          flash('บันทึกการแก้ไขแล้ว ✓');
+        }
       } else {
         await createProduct({
           category: form.category,
@@ -192,6 +222,8 @@ export default function AdminApp() {
           price: priceNum,
           buyUrl: form.buyUrl.trim(),
           style: form.style,
+          group: form.group.trim(),
+          colorName: form.colorName.trim(),
           gender: form.gender,
           fit: form.fit,
           scale: form.scale,
@@ -226,6 +258,16 @@ export default function AdminApp() {
 
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-900">
+      {cropping && form.previewUrl && (
+        <CropBox
+          src={form.previewUrl}
+          onCancel={() => setCropping(false)}
+          onApply={(dataUrl) => {
+            setForm((f) => ({ ...f, imageBase64: dataUrl, previewUrl: dataUrl }));
+            setCropping(false);
+          }}
+        />
+      )}
       <div className="mx-auto max-w-5xl px-4 py-8">
         <header className="mb-6 flex items-baseline justify-between">
           <div>
@@ -316,6 +358,15 @@ export default function AdminApp() {
                   ตัดพื้นหลังให้อัตโนมัติ{' '}
                   <span className="text-neutral-400">(รูปโปร่งอยู่แล้วจะข้ามให้เอง)</span>
                 </label>
+                {form.previewUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setCropping(true)}
+                    className="mt-2 w-full rounded-lg border border-neutral-300 py-2 text-xs font-semibold text-neutral-700 hover:border-neutral-400"
+                  >
+                    ✂️ ครอบตัดรูป (ตัดตัวอักษร/ลายน้ำออก)
+                  </button>
+                )}
               </div>
 
               {/* พรีวิวบนมาสคอต + เส้นปะไกด์ไลน์ + ปรับขนาด (โผล่เมื่อมีรูป) */}
@@ -334,27 +385,64 @@ export default function AdminApp() {
                   />
                   <div className="mt-2 flex items-center gap-2">
                     <span className="whitespace-nowrap text-xs font-semibold text-neutral-600">
-                      ขนาด {Math.round(form.scale * 100)}%
+                      ขนาด
                     </span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={30}
+                      max={200}
+                      value={scalePct}
+                      onChange={(e) => {
+                        setScalePct(e.target.value);
+                        const v = Number(e.target.value);
+                        if (e.target.value !== '' && Number.isFinite(v)) {
+                          setForm((f) => ({ ...f, scale: Math.min(2, Math.max(0.3, v / 100)) }));
+                        }
+                      }}
+                      onBlur={() => setScalePct(String(Math.round(form.scale * 100)))}
+                      className="w-16 rounded-lg border border-neutral-300 px-2 py-1 text-center text-sm outline-none focus:border-neutral-900"
+                    />
+                    <span className="text-xs text-neutral-500">%</span>
                     <input
                       type="range"
                       min={0.5}
                       max={1.3}
                       step={0.02}
                       value={form.scale}
-                      onChange={(e) => setForm((f) => ({ ...f, scale: Number(e.target.value) }))}
+                      onChange={(e) => {
+                        const s = Number(e.target.value);
+                        setForm((f) => ({ ...f, scale: s }));
+                        setScalePct(String(Math.round(s * 100)));
+                      }}
                       className="flex-1 accent-neutral-900"
                     />
                     {form.scale !== 1 && (
                       <button
                         type="button"
-                        onClick={() => setForm((f) => ({ ...f, scale: 1 }))}
+                        onClick={() => {
+                          setForm((f) => ({ ...f, scale: 1 }));
+                          setScalePct('100');
+                        }}
                         className="whitespace-nowrap text-xs text-neutral-500 underline"
                       >
                         รีเซ็ต
                       </button>
                     )}
                   </div>
+                  {groupSiblings.length > 0 && (
+                    <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-neutral-700">
+                      <input
+                        type="checkbox"
+                        checked={applyToGroup}
+                        onChange={(e) => setApplyToGroup(e.target.checked)}
+                        className="h-4 w-4 rounded border-neutral-300"
+                      />
+                      ใช้ขนาดนี้กับ
+                      <span className="font-semibold">ทั้งกลุ่ม “{form.group.trim()}”</span>
+                      <span className="text-neutral-400">({groupSiblings.length + 1} ชิ้น)</span>
+                    </label>
+                  )}
                 </div>
               )}
 
@@ -471,6 +559,30 @@ export default function AdminApp() {
                 </select>
               </div>
 
+              {/* 7. กลุ่มสี — สินค้าตัวเดียวกันหลายสีใส่ "กลุ่ม" เดียวกัน → หน้าแอปจะรวมเป็นแทบเลือกสี */}
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-neutral-600">
+                  7. กลุ่มสี{' '}
+                  <span className="font-normal text-neutral-400">
+                    (ไม่บังคับ · ตัวเดียวกันคนละสีใส่กลุ่มเดียวกัน)
+                  </span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    className={inputCls}
+                    value={form.group}
+                    onChange={(e) => setForm((f) => ({ ...f, group: e.target.value }))}
+                    placeholder="กลุ่ม เช่น tee-basic"
+                  />
+                  <input
+                    className={inputCls}
+                    value={form.colorName}
+                    onChange={(e) => setForm((f) => ({ ...f, colorName: e.target.value }))}
+                    placeholder="ชื่อสี เช่น ครีม"
+                  />
+                </div>
+              </div>
+
               {error && (
                 <div className="whitespace-pre-line rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
                   {error}
@@ -538,6 +650,12 @@ export default function AdminApp() {
                                 {p.scale && p.scale !== 1 && (
                                   <span className="rounded bg-purple-50 px-1.5 py-0.5 text-[10px] text-purple-600">
                                     {Math.round(p.scale * 100)}%
+                                  </span>
+                                )}
+                                {p.group && (
+                                  <span className="rounded bg-pink-50 px-1.5 py-0.5 text-[10px] text-pink-600">
+                                    {p.group}
+                                    {p.colorName ? ` · ${p.colorName}` : ''}
                                   </span>
                                 )}
                                 {p.style && (

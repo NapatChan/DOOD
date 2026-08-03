@@ -20,6 +20,8 @@ export interface AdminProduct {
   fit?: Fit; // ทรงท่อนล่าง (เฉพาะ pants)
   aspect?: number; // สัดส่วนรูป (เฉพาะ pants)
   scale?: number; // ตัวคูณขนาดรายชิ้น (1 = ปกติ)
+  group?: string; // คีย์จับกลุ่มสินค้าตัวเดียวกันหลายสี → แทบเลือกสี
+  colorName?: string; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี
 }
 
 export interface ProductInput {
@@ -33,6 +35,8 @@ export interface ProductInput {
   scale?: number; // ตัวคูณขนาดรายชิ้น (1 = ปกติ)
   imageBase64?: string; // dataURL หรือ base64 ล้วน
   removeBg?: 'auto' | 'on' | 'off'; // ตัดพื้นหลัง: auto=ตัดถ้ายังไม่โปร่ง (ค่าเริ่มต้น)
+  group?: string; // คีย์จับกลุ่มสินค้าตัวเดียวกันหลายสี (เว้น = ชิ้นเดี่ยว)
+  colorName?: string; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี
 }
 
 const BASE = '/api/products';

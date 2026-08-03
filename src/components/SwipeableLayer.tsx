@@ -1,7 +1,6 @@
 import { AnimatePresence, motion, type MotionValue } from 'framer-motion';
-import type { Category, ClothingItem, ColorVariant } from '../types';
+import type { Category, ClothingItem } from '../types';
 import { CATEGORY_LABEL, GARMENT_ORIGIN, onBodyBackground, onBodyScale } from '../types';
-import ColorSwatches from './ColorSwatches';
 import { EyeIcon, EyeOffIcon } from './icons';
 
 interface SwipeableLayerProps {
@@ -9,9 +8,6 @@ interface SwipeableLayerProps {
   item: ClothingItem;
   /** น้ำหนักการแบ่งความสูง (flex-grow) */
   grow: number;
-  /** ตัวเลือกสีของสินค้ากลุ่มเดียวกัน — ซ้อนบนเลเยอร์แทน dots (โชว์เมื่อ >1 สี) */
-  variants: ColorVariant[];
-  onSelectVariant: (index: number) => void;
   /** ปิดตา = ไม่ใส่ชั้นนี้ (ปัดไม่ได้ ต้องกดตาเปิดก่อน) */
   hidden: boolean;
   /** ระยะลากแนวนอนจาก gesture ระดับ "ทั้งจอ" — ทำให้ชิ้นติดนิ้ว */
@@ -66,8 +62,6 @@ export default function SwipeableLayer({
   category,
   item,
   grow,
-  variants,
-  onSelectVariant,
   hidden,
   dragX,
   direction,
@@ -153,14 +147,6 @@ export default function SwipeableLayer({
       <div className="pointer-events-none absolute inset-y-0 right-2 z-10 flex items-center lg:hidden">
         <SwipeHint flip nudge={nudge} />
       </div>
-
-      {/* แทบเลือกสี — ลอยซ้อนขอบล่างของเลเยอร์ (แทน dots เดิม) โชว์เมื่อกลุ่มมี >1 สี
-          เฉพาะมือถือ: เดสก์ท็อปโชว์แทบสีใต้มาสคอต (StageCaption) แทน ไม่ให้ซ้ำ */}
-      {variants.length > 1 && (
-        <div className="absolute inset-x-0 bottom-2 z-10 flex items-center justify-center px-3 lg:hidden">
-          <ColorSwatches variants={variants} onSelect={onSelectVariant} tone="overlay" />
-        </div>
-      )}
 
       {/* ปุ่มตา — แตะเพื่อ "ไม่ใส่" ชั้นนี้ (กันไม่ให้เริ่ม gesture ตอนกด) */}
       <button

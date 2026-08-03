@@ -2,6 +2,7 @@ import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AuthModal from './components/AuthModal';
 import Collection from './components/Collection';
+import ColorSwatchPicker from './components/ColorSwatchPicker';
 import GenderMenu from './components/GenderMenu';
 import GenderTabs from './components/GenderTabs';
 import LayerSelector from './components/LayerSelector';
@@ -326,8 +327,6 @@ export default function App() {
           <Mascot
             selectedItems={selectedItems}
             selectedLayer={selectedLayer}
-            variants={variants}
-            onSelectVariant={selectVariant}
             hidden={state.hidden}
             dragX={dragX}
             direction={swipeDir}
@@ -387,6 +386,14 @@ export default function App() {
       >
         🎲
       </button>
+
+      {/* ชิปเลือกสี (มือถือ) — มุมซ้ายล่าง (คู่กับ 🎲 ขวาล่าง) ตำแหน่งคงที่ ไม่ทับสินค้า · ต่ำกว่า price sheet (z-40) */}
+      <div
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 42px)' }}
+        className="fixed left-4 z-30 lg:hidden"
+      >
+        <ColorSwatchPicker variants={variants} onSelect={selectVariant} />
+      </div>
 
       {/* แถบราคาบนมือถือ — ซ่อน/โผล่ด้วยการลากขึ้น */}
       <MobilePriceSheet
