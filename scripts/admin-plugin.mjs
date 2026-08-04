@@ -115,6 +115,7 @@ function toAdminProduct(row) {
   if (row.scale != null) p.scale = row.scale;
   if (row.variant_group) p.group = row.variant_group;
   if (row.color_name) p.colorName = row.color_name;
+  if (row.needs_fix) p.needsFix = true;
   return p;
 }
 
@@ -256,6 +257,7 @@ export function adminApiPlugin() {
               if (body.gender !== undefined) patch.gender = normGender(body.gender);
               if (body.group !== undefined) patch.variant_group = String(body.group).trim() || null;
               if (body.colorName !== undefined) patch.color_name = String(body.colorName).trim() || null;
+              if (body.needsFix !== undefined) patch.needs_fix = !!body.needsFix;
               if (body.scale !== undefined) {
                 const s = normScale(body.scale);
                 patch.scale = s && s !== 1 ? s : null;

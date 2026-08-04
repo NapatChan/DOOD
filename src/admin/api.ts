@@ -22,6 +22,7 @@ export interface AdminProduct {
   scale?: number; // ตัวคูณขนาดรายชิ้น (1 = ปกติ)
   group?: string; // คีย์จับกลุ่มสินค้าตัวเดียวกันหลายสี → แทบเลือกสี
   colorName?: string; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี
+  needsFix?: boolean; // ติ๊กว่ามีปัญหา → ซ่อนจากเว็บลูกค้า + ไว้กลับมาแก้
 }
 
 export interface ProductInput {
@@ -37,6 +38,7 @@ export interface ProductInput {
   removeBg?: 'auto' | 'on' | 'off'; // ตัดพื้นหลัง: auto=ตัดถ้ายังไม่โปร่ง (ค่าเริ่มต้น)
   group?: string; // คีย์จับกลุ่มสินค้าตัวเดียวกันหลายสี (เว้น = ชิ้นเดี่ยว)
   colorName?: string; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี
+  needsFix?: boolean; // ติ๊ก/ปลดว่ามีปัญหา
 }
 
 const BASE = '/api/products';

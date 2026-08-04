@@ -42,8 +42,49 @@ export async function removeBgViaWorker(inputBuffer) {
   }
 }
 
+// ปิด "รูกลางเสื้อ": หลังตัดพื้นหลัง แถบขาว/สีอ่อน (เช่นเสื้อลายทาง) มัก
+// ถูกโมเดลนึกว่าเป็นพื้นหลัง → กลายเป็นรูโปร่งกลางตัวเสื้อ
+// วิธี: flood-fill จากขอบภาพผ่านพิกเซลโปร่ง = พื้นหลังจริง · พิกเซลโปร่งที่
+// "เข้าไม่ถึงจากขอบ" = รูที่ล้อมด้วยเนื้อผ้า → เติม alpha=255 (สี RGB เดิมยังอยู่ใต้ alpha)
+export async function fillInteriorHoles(buffer, alphaThreshold = 128) {
+  const { data, info } = await sharp(buffer).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { width: w, height: h, channels: ch } = info;
+  if (ch < 4) return buffer; // ไม่มี alpha = ไม่มีรู
+  const n = w * h;
+  const outside = new Uint8Array(n); // 1 = โปร่งที่ต่อถึงขอบ (พื้นหลังจริง)
+  const stack = new Int32Array(n);
+  let sp = 0;
+  const clear = (i) => data[i * ch + 3] < alphaThreshold; // โปร่งพอถือเป็นพื้นหลัง/รู
+  const seed = (x, y) => {
+    const i = y * w + x;
+    if (!outside[i] && clear(i)) { outside[i] = 1; stack[sp++] = i; }
+  };
+  for (let x = 0; x < w; x++) { seed(x, 0); seed(x, h - 1); }
+  for (let y = 0; y < h; y++) { seed(0, y); seed(w - 1, y); }
+  while (sp > 0) {
+    const i = stack[--sp];
+    const x = i % w, y = (i / w) | 0;
+    if (x > 0) { const j = i - 1; if (!outside[j] && clear(j)) { outside[j] = 1; stack[sp++] = j; } }
+    if (x < w - 1) { const j = i + 1; if (!outside[j] && clear(j)) { outside[j] = 1; stack[sp++] = j; } }
+    if (y > 0) { const j = i - w; if (!outside[j] && clear(j)) { outside[j] = 1; stack[sp++] = j; } }
+    if (y < h - 1) { const j = i + w; if (!outside[j] && clear(j)) { outside[j] = 1; stack[sp++] = j; } }
+  }
+  let filled = 0;
+  for (let i = 0; i < n; i++) {
+    if (!outside[i] && clear(i)) { data[i * ch + 3] = 255; filled++; }
+  }
+  if (filled === 0) return buffer; // ไม่มีรู = คืนเดิม
+  return sharp(data, { raw: { width: w, height: h, channels: ch } }).png().toBuffer();
+}
+
 // ตัดพื้นหลังตามโหมด: 'auto' (ตัดถ้ายังไม่โปร่ง) | 'on' (ตัดเสมอ) | 'off' (ไม่ตัด)
 export async function maybeRemoveBg(buffer, mode = 'auto') {
   const shouldRemove = mode === 'on' || (mode === 'auto' && !(await isCutout(buffer)));
-  return shouldRemove ? removeBgViaWorker(buffer) : buffer;
+  if (!shouldRemove) return buffer;
+  const cut = await removeBgViaWorker(buffer);
+  try {
+    return await fillInteriorHoles(cut); // ปิดรูกลางเสื้อ (ลายทาง/สีอ่อน)
+  } catch {
+    return cut; // ถ้าปิดรูพลาด ใช้รูปที่ตัดแล้วไปก่อน ไม่ให้ pipeline ล้ม
+  }
 }

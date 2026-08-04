@@ -82,6 +82,9 @@ export default function AdminApp() {
   const [cropping, setCropping] = useState(false);
   const [applyToGroup, setApplyToGroup] = useState(false); // แก้ขนาดทั้งกลุ่ม
   const [scalePct, setScalePct] = useState('100'); // ช่องพิมพ์ขนาดเป็น % (แยกจาก form.scale เพื่อพิมพ์ลื่น)
+  const [search, setSearch] = useState(''); // ค้นหาชื่อ/กลุ่ม/สี
+  const [catFilter, setCatFilter] = useState<Category | 'all'>('all'); // กรองหมวด
+  const [flaggedOnly, setFlaggedOnly] = useState(false); // เฉพาะที่ติ๊กว่ามีปัญหา
   const fileRef = useRef<HTMLInputElement>(null);
   const formTopRef = useRef<HTMLDivElement>(null);
 
@@ -252,6 +255,27 @@ export default function AdminApp() {
       setError(String((e as Error).message));
     }
   }
+
+  // ติ๊ก/ปลด "มีปัญหา" (ซ่อน/แสดงบนเว็บลูกค้า) — อัปเดตทันทีแล้วรีเฟรช
+  async function toggleFix(p: AdminProduct) {
+    try {
+      await updateProduct(p.id, { needsFix: !p.needsFix });
+      flash(p.needsFix ? 'ปลดปัญหาแล้ว — กลับขึ้นเว็บ' : 'ติ๊กปัญหาแล้ว — ซ่อนจากเว็บ');
+      await refresh();
+    } catch (e) {
+      setError(String((e as Error).message));
+    }
+  }
+
+  // กรองรายการตามค้นหา + toggle "เฉพาะมีปัญหา" (หมวดจัดการตอน render)
+  const q = search.trim().toLowerCase();
+  const matchesFilter = (p: AdminProduct) => {
+    if (flaggedOnly && !p.needsFix) return false;
+    if (!q) return true;
+    return [p.name, p.group, p.colorName].some((s) => (s || '').toLowerCase().includes(q));
+  };
+  const flaggedCount = products.filter((p) => p.needsFix).length;
+  const shownCats = catFilter === 'all' ? CATEGORIES : [catFilter];
 
   const inputCls =
     'w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900';
@@ -601,11 +625,48 @@ export default function AdminApp() {
 
           {/* ── รายการสินค้า ── */}
           <div>
+            {/* แถบเครื่องมือ: ค้นหา + กรองหมวด + เฉพาะที่มีปัญหา */}
+            <div className="mb-4 space-y-2">
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="🔍 ค้นหาชื่อสินค้า / กลุ่ม / สี"
+                className={inputCls}
+              />
+              <div className="flex flex-wrap items-center gap-1.5">
+                {(['all', ...CATEGORIES] as const).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setCatFilter(c)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      catFilter === c
+                        ? 'bg-neutral-900 text-white'
+                        : 'bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100'
+                    }`}
+                  >
+                    {c === 'all' ? 'ทั้งหมด' : CATEGORY_LABEL[c]}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setFlaggedOnly((v) => !v)}
+                  className={`ml-auto rounded-full px-3 py-1 text-xs font-semibold ${
+                    flaggedOnly
+                      ? 'bg-red-600 text-white'
+                      : 'bg-white text-red-600 ring-1 ring-red-200 hover:bg-red-50'
+                  }`}
+                >
+                  🚩 เฉพาะมีปัญหา{flaggedCount ? ` (${flaggedCount})` : ''}
+                </button>
+              </div>
+            </div>
             {loading ? (
               <p className="text-sm text-neutral-400">กำลังโหลด…</p>
             ) : (
-              CATEGORIES.map((cat) => {
-                const list = products.filter((p) => p.category === cat);
+              shownCats.map((cat) => {
+                const list = products.filter((p) => p.category === cat && matchesFilter(p));
                 return (
                   <section key={cat} className="mb-6">
                     <h3 className="mb-2 text-sm font-bold text-neutral-700">
@@ -619,8 +680,15 @@ export default function AdminApp() {
                         {list.map((p) => (
                           <div
                             key={p.id}
-                            className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5"
+                            className={`relative overflow-hidden rounded-xl bg-white shadow-sm ring-1 ${
+                              p.needsFix ? 'ring-2 ring-red-400' : 'ring-black/5'
+                            }`}
                           >
+                            {p.needsFix && (
+                              <span className="absolute left-1.5 top-1.5 z-10 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                🚩 มีปัญหา
+                              </span>
+                            )}
                             <div
                               className="aspect-square w-full"
                               style={{
@@ -676,6 +744,18 @@ export default function AdminApp() {
                                   className="flex-1 rounded-md bg-neutral-100 py-1 text-[11px] font-semibold hover:bg-neutral-200"
                                 >
                                   แก้ไข
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleFix(p)}
+                                  title={p.needsFix ? 'ปลดปัญหา (กลับขึ้นเว็บ)' : 'ติ๊กว่ามีปัญหา (ซ่อนจากเว็บ)'}
+                                  className={`rounded-md px-2 py-1 text-[11px] font-semibold ${
+                                    p.needsFix
+                                      ? 'bg-red-600 text-white hover:bg-red-700'
+                                      : 'bg-amber-50 text-amber-600 hover:bg-amber-100'
+                                  }`}
+                                >
+                                  🚩
                                 </button>
                                 <button
                                   type="button"

@@ -76,7 +76,8 @@ function group(products: RawProduct[]): Record<Category, ClothingItem[]> {
 async function fetchFromSupabase(): Promise<RawProduct[]> {
   if (!SB_URL || !SB_ANON) throw new Error('ยังไม่ตั้งค่า Supabase env');
   const res = await fetch(
-    `${SB_URL}/rest/v1/products?select=*&is_active=eq.true&order=sort_order`,
+    // needs_fix=not.is.true → ซ่อนสินค้าที่แอดมินติ๊กว่ามีปัญหา (รวม false + null) ออกจากเว็บลูกค้า
+    `${SB_URL}/rest/v1/products?select=*&is_active=eq.true&needs_fix=not.is.true&order=sort_order`,
     { headers: { apikey: SB_ANON, Authorization: `Bearer ${SB_ANON}` } },
   );
   if (!res.ok) throw new Error(`ดึง catalog ไม่สำเร็จ (${res.status})`);
