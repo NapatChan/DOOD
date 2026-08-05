@@ -10,7 +10,7 @@ interface AuthModalProps {
 // ล็อกอินด้วย Magic Link — กรอกอีเมล → ส่งลิงก์ → กดลิงก์ในเมล → เข้าอัตโนมัติ
 // ไม่มีรหัสผ่าน ไม่ต้องตั้ง SMTP (ใช้อีเมลในตัว Supabase ได้เลย)
 export default function AuthModal({ open, onClose }: AuthModalProps) {
-  const { sendMagicLink } = useAuth();
+  const { sendMagicLink, signInWithProvider } = useAuth();
   const [step, setStep] = useState<'email' | 'sent'>('email');
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
@@ -41,6 +41,17 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
       return;
     }
     setStep('sent');
+  }
+
+  // ล็อกอินแตะเดียว — สำเร็จแล้วเบราว์เซอร์เด้งออกไปหน้า provider เอง (ไม่ต้อง setStep)
+  async function handleOAuth(provider: 'google' | 'facebook') {
+    setBusy(true);
+    setError(null);
+    const { error: err } = await signInWithProvider(provider);
+    if (err) {
+      setBusy(false);
+      setError(err.message || 'เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง');
+    }
   }
 
   return (
@@ -79,8 +90,33 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
             {step === 'email' ? (
               <>
                 <p className="mb-4 text-sm text-neutral-500">
-                  เก็บลุคโปรดของคุณไว้ไม่ให้หาย — ใส่อีเมลแล้วเราส่งลิงก์เข้าสู่ระบบไปให้
+                  เก็บลุคโปรดของคุณไว้ไม่ให้หาย — เข้าสู่ระบบแตะเดียว
                 </p>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => handleOAuth('google')}
+                    disabled={busy}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white py-3 text-sm font-bold text-neutral-800 transition active:scale-[0.98] disabled:opacity-50"
+                  >
+                    <span className="text-base font-black text-[#4285F4]">G</span>
+                    เข้าสู่ระบบด้วย Google
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOAuth('facebook')}
+                    disabled={busy}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1877F2] py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
+                  >
+                    <span className="text-base font-black">f</span>
+                    เข้าสู่ระบบด้วย Facebook
+                  </button>
+                </div>
+                <div className="my-4 flex items-center gap-3 text-xs text-neutral-300">
+                  <span className="h-px flex-1 bg-neutral-200" />
+                  หรือใช้อีเมล
+                  <span className="h-px flex-1 bg-neutral-200" />
+                </div>
                 <input
                   ref={inputRef}
                   type="email"

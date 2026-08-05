@@ -23,6 +23,15 @@ export function useAuth() {
       }),
     [],
   );
+  // ล็อกอินแตะเดียวผ่าน OAuth (Google/Facebook) — เด้งไปหน้าผู้ให้บริการแล้วกลับมาที่โดเมนเดิม
+  const signInWithProvider = useCallback(
+    (provider: 'google' | 'facebook') =>
+      supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin },
+      }),
+    [],
+  );
   const signOut = useCallback(() => supabase.auth.signOut(), []);
 
   return {
@@ -31,6 +40,7 @@ export function useAuth() {
     email: session?.user?.email ?? null,
     isLoggedIn: Boolean(session),
     sendMagicLink,
+    signInWithProvider,
     signOut,
   };
 }
