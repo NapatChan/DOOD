@@ -1,0 +1,9 @@
+image,price,buyUrl,group,color,name,category,gender,fit,style,scale,removeBg
+cropped/charcoal-blue.png,309,https://s.shopee.co.th/5fniK4RzqE,rudedog-hat,กรมท่าฟ้า,หมวกแก๊ป RUDEDOG รุ่น Legend สีกรมท่าฟ้า,หมวก,ทุกเพศ,,สตรีท,,
+cropped/hue-blue.png,309,https://s.shopee.co.th/5fniK4RzqE,rudedog-hat,ฟ้าคราม,หมวกแก๊ป RUDEDOG รุ่น Legend สีฟ้าคราม,หมวก,ทุกเพศ,,สตรีท,,
+cropped/yellow.png,309,https://s.shopee.co.th/5fniK4RzqE,rudedog-hat,เหลือง,หมวกแก๊ป RUDEDOG รุ่น Legend สีเหลือง,หมวก,ทุกเพศ,,สตรีท,,
+cropped/oatmilk.png,309,https://s.shopee.co.th/5fniK4RzqE,rudedog-hat,โอ๊ตมิลค์,หมวกแก๊ป RUDEDOG รุ่น Legend สีโอ๊ตมิลค์,หมวก,ทุกเพศ,,สตรีท,,
+# IMG_2598.JPG ข้ามเพราะซ้ำกับ IMG_2594 (สีโอ๊ตมิลค์เหมือนกัน)
+cropped/wine.png,309,https://s.shopee.co.th/5fniK4RzqE,rudedog-hat,ไวน์,หมวกแก๊ป RUDEDOG รุ่น Legend สีไวน์,หมวก,ทุกเพศ,,สตรีท,,
+cropped/pink.png,309,https://s.shopee.co.th/5fniK4RzqE,rudedog-hat,ชมพู,หมวกแก๊ป RUDEDOG รุ่น Legend สีชมพู,หมวก,ทุกเพศ,,สตรีท,,
+cropped/black.png,309,https://s.shopee.co.th/5fniK4RzqE,rudedog-hat,ดำ,หมวกแก๊ป RUDEDOG รุ่น Legend สีดำ,หมวก,ทุกเพศ,,สตรีท,,
