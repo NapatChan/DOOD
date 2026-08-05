@@ -5,6 +5,7 @@ import Collection from './components/Collection';
 import ColorSwatchPicker from './components/ColorSwatchPicker';
 import GenderMenu from './components/GenderMenu';
 import GenderTabs from './components/GenderTabs';
+import InAppBrowserNotice from './components/InAppBrowserNotice';
 import LayerSelector from './components/LayerSelector';
 import LookBar from './components/LookBar';
 import LookPreview from './components/LookPreview';
@@ -74,21 +75,24 @@ export default function App() {
     prevLoggedInRef.current = auth.isLoggedIn;
   }, [auth.isLoggedIn]);
 
-  // เปิดลิงก์ที่เพื่อนแชร์มา (?l=...) → ใส่ลุคนั้นทันทีเมื่อสินค้าโหลดเสร็จ แล้วล้าง param ออกจาก URL
+  // เปิดลิงก์ที่เพื่อนแชร์มา (?l=...) → ใส่ลุคนั้นทันทีเมื่อสินค้าโหลดเสร็จ
+  // หมายเหตุ: "เก็บ ?l= ไว้ใน URL" จนกว่าผู้ใช้จะเริ่มปัดเอง (ดู handlePan) —
+  // ไม่งั้นถ้า in-app browser (LINE/เมล) กด "เปิดในเบราว์เซอร์" จะได้ URL เปล่า ลุคหาย
   const appliedSharedRef = useRef(false);
   useEffect(() => {
     if (loading || appliedSharedRef.current) return;
     appliedSharedRef.current = true;
     const parsed = parseLookFromSearch(window.location.search);
-    if (parsed) {
-      applyLook(parsed.items, parsed.hidden);
-      window.history.replaceState(null, '', window.location.pathname);
-    }
+    if (parsed) applyLook(parsed.items, parsed.hidden);
   }, [loading, applyLook]);
 
   const handlePan = (_e: unknown, info: PanInfo) => {
     if (Math.abs(info.offset.x) > 8 || Math.abs(info.offset.y) > 8) {
-      didPanRef.current = true;
+      if (!didPanRef.current) {
+        didPanRef.current = true;
+        // ผู้ใช้เริ่มปัดเอง → ตอนนี้ค่อยล้าง ?l= (ก่อนหน้าเก็บไว้เผื่อ "เปิดในเบราว์เซอร์" พาลุคไปด้วย)
+        if (window.location.search) window.history.replaceState(null, '', window.location.pathname);
+      }
     }
     if (layerHidden) return; // ชั้นที่ไม่ใส่ ปัดไม่ได้
     // หน่วงนิดหน่อยให้รู้สึกมีแรงต้าน ไม่เลื่อนหลุดมือ
@@ -275,6 +279,7 @@ export default function App() {
     <div
       className="relative mx-auto flex h-[100svh] w-full max-w-md flex-col items-center bg-neutral-100 md:max-w-lg lg:h-auto lg:min-h-[100dvh] lg:max-w-7xl lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:px-16 xl:px-24"
     >
+      <InAppBrowserNotice />
       {/* แถบบน (มือถือ): แบรนด์ + tagline ซ้าย, ปุ่มสุ่มลุคขวา */}
       <header
         className="flex w-full shrink-0 items-center justify-between px-4 pb-2 lg:hidden"
