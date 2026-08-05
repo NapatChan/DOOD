@@ -23,6 +23,7 @@ export interface AdminProduct {
   group?: string; // คีย์จับกลุ่มสินค้าตัวเดียวกันหลายสี → แทบเลือกสี
   colorName?: string; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี
   needsFix?: boolean; // ติ๊กว่ามีปัญหา → ซ่อนจากเว็บลูกค้า + ไว้กลับมาแก้
+  createdAt?: string; // วันที่ลงสินค้า (ISO) — ไว้โชว์ในการ์ด
 }
 
 export interface ProductInput {

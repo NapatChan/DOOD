@@ -72,6 +72,24 @@ const EMPTY: FormState = {
   removeBg: true,
 };
 
+// วันที่ลงสินค้า (ISO) → รูปแบบไทยสั้น เช่น "1 ส.ค. 2569"
+function fmtDate(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// ISO → 'YYYY-MM-DD' ตามเวลาท้องถิ่น (ไว้เทียบกับ <input type="date">)
+function toLocalYMD(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
 export default function AdminApp() {
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,6 +102,8 @@ export default function AdminApp() {
   const [scalePct, setScalePct] = useState('100'); // ช่องพิมพ์ขนาดเป็น % (แยกจาก form.scale เพื่อพิมพ์ลื่น)
   const [search, setSearch] = useState(''); // ค้นหาชื่อ/กลุ่ม/สี
   const [catFilter, setCatFilter] = useState<Category | 'all'>('all'); // กรองหมวด
+  const [genderFilter, setGenderFilter] = useState<Gender | 'all'>('all'); // กรองเพศ
+  const [dateFilter, setDateFilter] = useState(''); // กรองวันที่ลง (YYYY-MM-DD, '' = ทั้งหมด)
   const [flaggedOnly, setFlaggedOnly] = useState(false); // เฉพาะที่ติ๊กว่ามีปัญหา
   const fileRef = useRef<HTMLInputElement>(null);
   const formTopRef = useRef<HTMLDivElement>(null);
@@ -256,12 +276,15 @@ export default function AdminApp() {
     }
   }
 
-  // ติ๊ก/ปลด "มีปัญหา" (ซ่อน/แสดงบนเว็บลูกค้า) — อัปเดตทันทีแล้วรีเฟรช
+  // ติ๊ก/ปลด "มีปัญหา" (ซ่อน/แสดงบนเว็บลูกค้า) — แก้แค่ชิ้นนั้นในสเตทตรง ๆ ไม่เรียก refresh()
+  // ทั้งลิสต์ (refresh ทำให้ตะเข็บ "กำลังโหลด..." สลับเนื้อหาทั้งหน้า scroll เด้งกลับขึ้นบน
+  // กดติ๊กหลายชิ้นรวดเดียวแล้วต้องเลื่อนลงมาใหม่ทุกครั้ง)
   async function toggleFix(p: AdminProduct) {
     try {
-      await updateProduct(p.id, { needsFix: !p.needsFix });
+      const next = !p.needsFix;
+      await updateProduct(p.id, { needsFix: next });
+      setProducts((prev) => prev.map((x) => (x.id === p.id ? { ...x, needsFix: next } : x)));
       flash(p.needsFix ? 'ปลดปัญหาแล้ว — กลับขึ้นเว็บ' : 'ติ๊กปัญหาแล้ว — ซ่อนจากเว็บ');
-      await refresh();
     } catch (e) {
       setError(String((e as Error).message));
     }
@@ -271,6 +294,8 @@ export default function AdminApp() {
   const q = search.trim().toLowerCase();
   const matchesFilter = (p: AdminProduct) => {
     if (flaggedOnly && !p.needsFix) return false;
+    if (genderFilter !== 'all' && p.gender !== genderFilter) return false;
+    if (dateFilter && toLocalYMD(p.createdAt) !== dateFilter) return false;
     if (!q) return true;
     return [p.name, p.group, p.colorName].some((s) => (s || '').toLowerCase().includes(q));
   };
@@ -661,6 +686,38 @@ export default function AdminApp() {
                   🚩 เฉพาะมีปัญหา{flaggedCount ? ` (${flaggedCount})` : ''}
                 </button>
               </div>
+              {/* เลือกเพศ */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {(['all', 'female', 'male', 'unisex'] as const).map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGenderFilter(g)}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      genderFilter === g
+                        ? 'bg-neutral-900 text-white'
+                        : 'bg-white text-neutral-600 ring-1 ring-neutral-200 hover:bg-neutral-100'
+                    }`}
+                  >
+                    {g === 'all' ? 'ทั้งหมด' : GENDER_LABEL[g]}
+                  </button>
+                ))}
+                <input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="ml-auto rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-600 outline-none focus:border-neutral-900"
+                />
+                {dateFilter && (
+                  <button
+                    type="button"
+                    onClick={() => setDateFilter('')}
+                    className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-500 hover:bg-neutral-200"
+                  >
+                    ล้างวันที่ ✕
+                  </button>
+                )}
+              </div>
             </div>
             {loading ? (
               <p className="text-sm text-neutral-400">กำลังโหลด…</p>
@@ -704,6 +761,9 @@ export default function AdminApp() {
                                 {p.name}
                               </p>
                               <p className="text-xs text-neutral-500">฿{p.price}</p>
+                              {p.createdAt && (
+                                <p className="text-[10px] text-neutral-400">{fmtDate(p.createdAt)}</p>
+                              )}
                               <div className="mt-1 flex flex-wrap items-center gap-1">
                                 {p.gender && p.gender !== 'unisex' && (
                                   <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] text-blue-600">

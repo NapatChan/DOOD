@@ -116,6 +116,7 @@ function toAdminProduct(row) {
   if (row.variant_group) p.group = row.variant_group;
   if (row.color_name) p.colorName = row.color_name;
   if (row.needs_fix) p.needsFix = true;
+  if (row.created_at) p.createdAt = row.created_at;
   return p;
 }
 
