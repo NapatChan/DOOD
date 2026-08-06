@@ -92,26 +92,15 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                 <p className="mb-4 text-sm text-neutral-500">
                   เก็บลุคโปรดของคุณไว้ไม่ให้หาย — เข้าสู่ระบบแตะเดียว
                 </p>
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => handleOAuth('google')}
-                    disabled={busy}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white py-3 text-sm font-bold text-neutral-800 transition active:scale-[0.98] disabled:opacity-50"
-                  >
-                    <span className="text-base font-black text-[#4285F4]">G</span>
-                    เข้าสู่ระบบด้วย Google
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleOAuth('facebook')}
-                    disabled={busy}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1877F2] py-3 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
-                  >
-                    <span className="text-base font-black">f</span>
-                    เข้าสู่ระบบด้วย Facebook
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => handleOAuth('google')}
+                  disabled={busy}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white py-3 text-sm font-bold text-neutral-800 transition active:scale-[0.98] disabled:opacity-50"
+                >
+                  <span className="text-base font-black text-[#4285F4]">G</span>
+                  เข้าสู่ระบบด้วย Google
+                </button>
                 <div className="my-4 flex items-center gap-3 text-xs text-neutral-300">
                   <span className="h-px flex-1 bg-neutral-200" />
                   หรือใช้อีเมล
