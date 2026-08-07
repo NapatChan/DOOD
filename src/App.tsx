@@ -12,6 +12,7 @@ import LookPreview from './components/LookPreview';
 import Mascot from './components/Mascot';
 import MobilePriceSheet from './components/MobilePriceSheet';
 import NavArrow from './components/NavArrows';
+import ShareMenu from './components/ShareMenu';
 import StageCaption from './components/StageCaption';
 import Toast from './components/Toast';
 import { useAuth } from './hooks/useAuth';
@@ -51,6 +52,7 @@ export default function App() {
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [savingImage, setSavingImage] = useState(false);
 
   // gesture ปัดแนวนอน "ทั่วทั้งจอ" — เลื่อนชั้นที่เลือกตามนิ้ว แล้วสลับชิ้นตอนปล่อย
@@ -426,13 +428,7 @@ export default function App() {
           <ExpandButton onClick={() => setPreviewOpen(true)} size={48} />
         </div>
         <div className="w-full">
-          <LookBar
-            totalPrice={totalPrice}
-            onWant={handleWant}
-            onShare={handleShare}
-            onSaveImage={handleSaveImage}
-            savingImage={savingImage}
-          />
+          <LookBar totalPrice={totalPrice} onWant={handleWant} onShare={() => setShareMenuOpen(true)} />
         </div>
       </footer>
 
@@ -466,9 +462,7 @@ export default function App() {
           handleWant();
           revealPrice();
         }}
-        onShare={handleShare}
-        onSaveImage={handleSaveImage}
-        savingImage={savingImage}
+        onShare={() => setShareMenuOpen(true)}
       />
 
       <Collection
@@ -489,6 +483,14 @@ export default function App() {
       />
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+
+      <ShareMenu
+        open={shareMenuOpen}
+        onClose={() => setShareMenuOpen(false)}
+        onShareLink={handleShare}
+        onSaveImage={handleSaveImage}
+        savingImage={savingImage}
+      />
 
       <LookPreview
         open={previewOpen}

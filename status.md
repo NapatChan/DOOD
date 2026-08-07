@@ -98,6 +98,7 @@
 
 ## §5. 📝 Change log (ใหม่สุดอยู่บน)
 
+- **2026-08-07** — 🔀 **รวมปุ่มแชร์เป็นเมนูเดียว (เสร็จในเครื่อง ยังไม่ push)**: จาก 2 ปุ่ม (แชร์ลิงก์ + รูป) → ปุ่ม "แชร์" เดียวเด้ง `ShareMenu` (bottom sheet) ให้เลือก 2 ทาง — "แชร์ให้เพื่อน (ลิงก์กดได้ ดึง traffic)" / "บันทึกรูปลง story (การ์ด 9:16)" ป้ายกำกับสอนคนในตัว · reuse `handleShare`+`handleSaveImage` เดิม ไม่แตะลอจิก · LookBar/MobilePriceSheet กลับเป็นปุ่มเดียว · tsc+build ผ่าน
 - **2026-08-07** — 📷 **ปุ่มบันทึก/แชร์รูปลุค 9:16 (push `089ff56`)**: เพิ่มปุ่มรูปข้างปุ่มแชร์เดิมใน `LookBar` + `MobilePriceSheet` → ดึงการ์ด 9:16 (PNG จาก `/api/og?l=`) แล้ว `navigator.share({files})` (มือถือ→เลือก IG/TikTok story) · ไม่รองรับ/แชร์พังใน in-app → ดาวน์โหลดรูปลงเครื่องแทน · `buildCardImageUrl()` ใน lookUrl.ts · `ImageIcon` · handler `handleSaveImage` (loading state กันกดซ้ำ + toast) · tsc+build ผ่าน · **หมายเหตุ: `/api/og` เป็น serverless เทสจริงต้องบน Vercel (หรือ `vercel dev`)** · ต่อยอดจากแผน [planning-content.md](planning-content.md)
 - **2026-08-07** — 🎬 **แผนคอนเทนต์ TikTok 14 วัน** ([planning-content.md](planning-content.md)): 6 ฟอร์แมตแม่แบบ + คลังฮุค + ปฏิทิน 14 วัน + สคริปต์เต็ม 7 คลิปแรก + ระบบทำงานคนเดียว (แบตช์) + สเปกวิชวล + กฎวัดผล — ลงมือของ "แพลน B: TikTok/Reels"
 
