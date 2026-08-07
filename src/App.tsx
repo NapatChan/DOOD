@@ -17,7 +17,7 @@ import Toast from './components/Toast';
 import { useAuth } from './hooks/useAuth';
 import { useSavedLooks } from './hooks/useSavedLooks';
 import { useWardrobe } from './hooks/useWardrobe';
-import { buildShareUrl, parseLookFromSearch } from './lib/lookUrl';
+import { buildCardImageUrl, buildShareUrl, parseLookFromSearch } from './lib/lookUrl';
 import { CATEGORIES, type Category } from './types';
 
 // เกณฑ์ตัดสินว่า "ปัดสำเร็จ" — ระยะหรือความเร็วอย่างใดอย่างหนึ่งถึง
@@ -51,6 +51,7 @@ export default function App() {
   const [collectionOpen, setCollectionOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [savingImage, setSavingImage] = useState(false);
 
   // gesture ปัดแนวนอน "ทั่วทั้งจอ" — เลื่อนชั้นที่เลือกตามนิ้ว แล้วสลับชิ้นตอนปล่อย
   const dragX = useMotionValue(0);
@@ -170,6 +171,54 @@ export default function App() {
       showToast('ก๊อปลิงก์ไม่สำเร็จ');
     }
   }, [selectedItems, state.hidden]);
+
+  // "บันทึก/แชร์รูป" — ดึงการ์ดลุค 9:16 (PNG จาก /api/og) แล้ว:
+  //   มือถือรองรับแชร์ไฟล์ → เปิด share sheet (เลือก IG/TikTok story ได้เลย)
+  //   เดสก์ท็อป/ไม่รองรับ/แชร์พังใน in-app → ดาวน์โหลดรูปลงเครื่อง (เอาไปลง story เองได้เหมือนกัน)
+  const handleSaveImage = useCallback(async () => {
+    if (!selectedItems || savingImage) return;
+    setSavingImage(true);
+    showToast('กำลังสร้างรูปลุค… 🎨');
+    const idMap = CATEGORIES.reduce(
+      (acc, c) => {
+        acc[c] = selectedItems[c].id;
+        return acc;
+      },
+      {} as Record<Category, string>,
+    );
+    const url = buildCardImageUrl(idMap, state.hidden);
+    const download = (blob: Blob) => {
+      const objUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objUrl;
+      a.download = 'dood-look.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objUrl);
+      showToast('บันทึกรูปลุคแล้ว 📷 เอาไปลง story ได้เลย');
+    };
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`สร้างรูปไม่สำเร็จ (${res.status})`);
+      const blob = await res.blob();
+      const file = new File([blob], 'dood-look.png', { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], text: 'ลุคของฉันจาก DOOD 👗 doodstyles.com' });
+        } catch (e) {
+          // ผู้ใช้กดยกเลิก = ไม่ต้องทำอะไร · แชร์พังจริง (เช่น in-app browser) → บันทึกลงเครื่องแทน
+          if ((e as Error)?.name !== 'AbortError') download(blob);
+        }
+      } else {
+        download(blob);
+      }
+    } catch {
+      showToast('สร้างรูปไม่สำเร็จ ลองใหม่อีกครั้ง');
+    } finally {
+      setSavingImage(false);
+    }
+  }, [selectedItems, state.hidden, savingImage]);
 
   // ใส่ลุคจากคอลเลกชัน → โหลดขึ้นมาสคอต + ปิด overlay (ไม่มีป็อปอัพ ปิดเองก็รู้แล้ว)
   const handleApplyLook = useCallback(
@@ -377,7 +426,13 @@ export default function App() {
           <ExpandButton onClick={() => setPreviewOpen(true)} size={48} />
         </div>
         <div className="w-full">
-          <LookBar totalPrice={totalPrice} onWant={handleWant} onShare={handleShare} />
+          <LookBar
+            totalPrice={totalPrice}
+            onWant={handleWant}
+            onShare={handleShare}
+            onSaveImage={handleSaveImage}
+            savingImage={savingImage}
+          />
         </div>
       </footer>
 
@@ -412,6 +467,8 @@ export default function App() {
           revealPrice();
         }}
         onShare={handleShare}
+        onSaveImage={handleSaveImage}
+        savingImage={savingImage}
       />
 
       <Collection

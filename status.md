@@ -2,16 +2,19 @@
 
 > **ไฟล์นี้ = สถานะปัจจุบันของโปรเจกต์: ทำถึงไหนแล้ว / ต่อไปทำอะไร**
 > 📌 **กฎ: อัปเดตไฟล์นี้ทุกครั้งที่มีการเปลี่ยนแปลง** (เสร็จงาน / เริ่มงานใหม่ / push / ตัดสินใจ) + เพิ่มบรรทัดใน §5 Change log
-> อัปเดตล่าสุด: 2026-08-04 (โดเมนใหม่ doodstyles.com + แชร์ไดนามิก live + Vercel Analytics)
+> อัปเดตล่าสุด: 2026-08-06 (magic link มือถือ + แอดมิน filters/ธง + ปิดรูลายทาง + fix ลุคแชร์/in-app browser)
 
 ---
 
-## §1. 🟢 สถานะ Git — sync แล้ว
+## §1. 🟢 สถานะ Git — sync แล้ว (ไม่มีงานค้าง push)
 
-- **push ล่าสุด: `a5aef01`** — fix การ์ดแชร์: กางเกงทรงสั้นไม่บานเต็มคอลัมน์ (+ ค้าง: title ✨ + Analytics + status นี้)
-- 🌐 **โดเมนใหม่ `doodstyles.com`** (Hostinger → Vercel nameservers) · SSL ออกแล้ว · www เป็น primary (apex เด้งไป www)
-- ✅ **ระบบแชร์ไดนามิกทำงานเต็มบน production** — ยืนยันรูปสด: DOOD/ราคา/text ครบ + ชุดจริง + ฿ · copy ใหม่ "ค้นหาลุคที่ใช่ใน DOOD ✨"
-- 📊 **Vercel Analytics** ใส่ในโค้ดแล้ว (`<Analytics/>` ใน main.tsx) — ต้องเปิดใน Vercel dashboard → Analytics ด้วย
+- **push ล่าสุด: `ac469d4`** — fix ลุคที่แชร์หายตอน "เปิดในเบราว์เซอร์" + แถบเตือน in-app browser
+- 🌐 **โดเมน `doodstyles.com`** (Hostinger → Vercel nameservers) · SSL ✅ · www เป็น primary
+- ✅ **แชร์ไดนามิก live** — การ์ด 9:16 (sharp+resvg+Kanit) · title "ค้นหาลุคที่ใช่ใน DOOD ✨" · desc "ปัดแต่งชุด จัดลุคที่ใช่ ช้อปได้เลย"
+- 📊 **Vercel Analytics เปิดแล้ว** (dashboard + สคริปต์ live 200) — เก็บ traffic แล้ว
+- 📧 **Magic link ใช้ได้เต็มบนมือถือ** (Resend SMTP + template ไทย + แก้ Supabase URL = www ให้ตรงโดเมนจริง)
+- 🛠️ **แอดมิน filters ครบ**: ค้นหา · หมวด · เพศ · วันที่ลง · 🚩 ติ๊กปัญหา (needs_fix ซ่อนจากเว็บ)
+- 📦 **สินค้าจริง 184 ชิ้น** (หมวก 25 · เสื้อ 100 · กางเกง 59) — แก้ผ่านแอดมิน local อัปเดตเว็บทันที ไม่ต้อง push
 
 ---
 
@@ -59,7 +62,13 @@
 **ลำดับ 2 — Roadmap เฟส 1: หาเงิน + โต** (ดู [ROADMAP.md](ROADMAP.md))
 - [x] 🧑 สมัคร affiliate Shopee + ใส่ลิงก์ครบ **23/23** (1 ลิงก์/ประเภท → หน้า listing มีทุกสีเป็น variant) → **รายได้ปลดล็อกแล้ว**
 - [x] 🤖 ปุ่มแชร์ลุค + **การ์ดแชร์ไดนามิก** (9:16 IG/TikTok, sharp+resvg) + OG meta ต่อลุค + favicon — live บน doodstyles.com
-- [x] 🤖 Analytics (Vercel Analytics — ฟรี, ไม่ต้อง cookie banner) ใส่โค้ดแล้ว · **เหลือเปิดสวิตช์ใน Vercel dashboard**
+- [x] 🤖 Analytics (Vercel Analytics) — เปิดใน dashboard + สคริปต์ live แล้ว ✅ เก็บ traffic
+
+**➡️ โฟกัสถัดไป (2026-08-06) — เทคพร้อมแล้ว ต้อง "หาคนเข้า" ไม่ใช่ build เพิ่ม**
+- funnel ครบ (ปัด→แชร์→ช้อป) + วัดผลได้ + ล็อกอินได้ + สินค้า 184 ชิ้น → **ตัวติดคือ traffic**
+- 🧑 **แพลน B: TikTok/Reels** (artifact แพลน 14 วัน) — โพสต์คลิปแรก + ให้เพื่อน 5-10 คนลอง + ดู Analytics
+- ตัดสินใจงานถัดไป**ด้วยข้อมูลจริง** (คนปัดอะไร/หลุดตรงไหน) ไม่ใช่เดา · อย่า build ใหญ่จนมีผู้ใช้จริง 20-30 คน
+- เก็บตก: 🚩 ติ๊ก 10 เบบี้ทีลายน้ำ STYLIST (ใช้ปุ่มธงใหม่ซ่อนได้แล้ว) · `npm audit fix` (zod)
 
 **ลำดับ 3 — งานเก็บตก (เล็ก, ไม่เร่ง)**
 - [ ] 🧑 เช็กเว็ปจริงหลัง deploy B1: DevTools → Network เห็น request ไป `*.supabase.co` แล้ว**จด URL เว็ปจริงไว้ใน §6** (ตอนนี้ยังไม่มีที่ไหนจดเลย)
@@ -88,6 +97,17 @@
 ---
 
 ## §5. 📝 Change log (ใหม่สุดอยู่บน)
+
+- **2026-08-07** — 📷 **ปุ่มบันทึก/แชร์รูปลุค 9:16 (เสร็จในเครื่อง ยังไม่ push)**: เพิ่มปุ่มรูปข้างปุ่มแชร์เดิมใน `LookBar` + `MobilePriceSheet` → ดึงการ์ด 9:16 (PNG จาก `/api/og?l=`) แล้ว `navigator.share({files})` (มือถือ→เลือก IG/TikTok story) · ไม่รองรับ/แชร์พังใน in-app → ดาวน์โหลดรูปลงเครื่องแทน · `buildCardImageUrl()` ใน lookUrl.ts · `ImageIcon` · handler `handleSaveImage` (loading state กันกดซ้ำ + toast) · tsc+build ผ่าน · **หมายเหตุ: `/api/og` เป็น serverless เทสจริงต้องบน Vercel (หรือ `vercel dev`)** · ต่อยอดจากแผน [planning-content.md](planning-content.md)
+- **2026-08-07** — 🎬 **แผนคอนเทนต์ TikTok 14 วัน** ([planning-content.md](planning-content.md)): 6 ฟอร์แมตแม่แบบ + คลังฮุค + ปฏิทิน 14 วัน + สคริปต์เต็ม 7 คลิปแรก + ระบบทำงานคนเดียว (แบตช์) + สเปกวิชวล + กฎวัดผล — ลงมือของ "แพลน B: TikTok/Reels"
+
+- **2026-08-06** — 🔗 **fix ลุคที่แชร์หาย + เตือน in-app browser** (push `ac469d4`): เดิม App.tsx ล้าง `?l=` ออกจาก URL ทันทีที่โหลด → กด "เปิดในเบราว์เซอร์" จาก LINE/เมล ได้ URL เปล่า **ลุคหาย** → แก้ให้**เก็บ `?l=` ไว้จนผู้ใช้เริ่มปัดเอง** (ล้างใน handlePan ครั้งแรก) · `InAppBrowserNotice.tsx` ตรวจ UA (LINE/FB/IG/TikTok/เมล) → แถบบนสุด "เปิดใน Safari/Chrome" + ปุ่มคัดลอกลิงก์ (แก้ต้นเหตุร่วม: in-app browser แยก storage → ล็อกอินไม่ค้าง + ลุคหาย)
+
+- **2026-08-06** — 🛠️ **แอดมิน: วันที่ลง + กรองเพศ + เลือกวันที่ + tooling** (push `664ded3`): การ์ดโชว์ `created_at` (map ใน api.ts+admin-plugin) · แถบเครื่องมือเพิ่มชิปกรองเพศ + `<input type=date>` กรองวันที่ลง (toLocalYMD) · scripts ลงสินค้า (admin-form-fill/admin-update-image/crop-multi-item) + agent `dood-admin-filler` · สินค้าใหม่ชุด 4-8 (84 ไฟล์) + 5-8 (166 ไฟล์)
+
+- **2026-08-05** — 🚩 **แอดมิน: ติ๊กสินค้ามีปัญหา + ค้นหา/กรอง · ปิดรูเสื้อลายทาง** (push `db0cfcd`): คอลัมน์ `needs_fix` (รัน ALTER) — ติ๊ก 🚩 = ซ่อนจากเว็บลูกค้า (`catalogSource` query `needs_fix=not.is.true`) ขอบแดง/badge · แถบเครื่องมือ: ค้นหา (ชื่อ/กลุ่ม/สี) + ชิปหมวด + toggle "เฉพาะมีปัญหา" · **`bg-util.fillInteriorHoles`** flood-fill ปิดรูกลางเสื้อ (แถบขาว/ลายทางที่ AI ตัดผิด) เทส synthetic ผ่าน · **แก้ตัวเลขที่เคยนับผิด: สินค้าจริง 184 ชิ้น** (query เก่าโดนตัดที่ 100) · โมเดล @imgly มีแค่ small/medium (large ใช้ไม่ได้)
+
+- **2026-08-04** — 📧 **Magic link ใช้ได้บนมือถือ**: ตั้ง **Resend SMTP** (verify domain doodstyles.com ผ่าน Vercel DNS integration — DKIM/SPF/MX) + template อีเมลไทย (การ์ด DOOD ปุ่มกลม) · **fix ล็อกอินวนบนมือถือ**: เว็บหลัก www แต่ Supabase ตั้ง redirect เป็น non-www → token หล่นตอนเด้งข้ามโฮสต์ → แก้ Supabase Site URL + Redirect = `www.doodstyles.com` ให้ตรง · ปรับ copy ล็อกอินในเว็บ (เลี่ยง "ข้ามเครื่อง" → "เก็บลุคโปรดของคุณไว้ไม่ให้หาย")
 
 - **2026-08-04** — 📊 **Vercel Analytics + อัปเดตเอกสาร**: ติดตั้ง `@vercel/analytics` + `<Analytics/>` ใน main.tsx (build ผ่าน) → เริ่มเก็บ traffic/pageview · **ต้องเปิดใน Vercel dashboard → Analytics** ถึงจะเก็บจริง · อัปเดต status.md ให้ตรงปัจจุบัน (โดเมน/แชร์/ขาสั้น)
 - **2026-08-04** — 🩳 **fix การ์ดแชร์ กางเกงทรงสั้นบานเต็มคอลัมน์** (push `a5aef01`): พอร์ตสูตร `shortBottomHeightPct` (48/aspect%, clamp 24-38) จาก src/types → api/_look.mjs · fit=short คุมด้วยความสูง เหมือนเว็บ · fit=long ไม่กระทบ · เทส local + ยืนยันสด production

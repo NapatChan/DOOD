@@ -44,3 +44,12 @@ export function buildShareUrl(
 ): string {
   return `${window.location.origin}/s?${encodeLook(items, hidden)}`;
 }
+
+// URL รูปการ์ดลุค 9:16 (PNG) — สำหรับ "บันทึก/แชร์เป็นรูป" (เอาไปลง story)
+// ชี้ตรงไป /api/og (serverless เดียวกับที่ bot ดึง og:image) → ได้รูปลุคจริง 1080×1920
+export function buildCardImageUrl(
+  items: Record<Category, string>,
+  hidden: Record<Category, boolean>,
+): string {
+  return `${window.location.origin}/api/og?${encodeLook(items, hidden)}`;
+}

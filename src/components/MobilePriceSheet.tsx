@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import type { Category, ClothingItem } from '../types';
 import { CATEGORIES, CATEGORY_LABEL } from '../types';
-import { ShareIcon } from './icons';
+import { ImageIcon, ShareIcon } from './icons';
 
 interface MobilePriceSheetProps {
   selectedItems: Record<Category, ClothingItem>;
@@ -11,6 +11,8 @@ interface MobilePriceSheetProps {
   onToggle: () => void;
   onWant: () => void;
   onShare: () => void;
+  onSaveImage: () => void;
+  savingImage?: boolean;
 }
 
 const formatBaht = (n: number) => `฿${n.toLocaleString('th-TH')}`;
@@ -25,6 +27,8 @@ export default function MobilePriceSheet({
   onToggle,
   onWant,
   onShare,
+  onSaveImage,
+  savingImage,
 }: MobilePriceSheetProps) {
   return (
     <motion.div
@@ -99,9 +103,18 @@ export default function MobilePriceSheet({
           </div>
           <button
             type="button"
+            onClick={onSaveImage}
+            disabled={savingImage}
+            aria-label="บันทึก/แชร์รูปลุค"
+            className="ml-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition active:scale-90 disabled:opacity-50"
+          >
+            <ImageIcon size={20} />
+          </button>
+          <button
+            type="button"
             onClick={onShare}
-            aria-label="แชร์ลุคนี้"
-            className="ml-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition active:scale-90"
+            aria-label="แชร์ลิงก์ลุคนี้"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition active:scale-90"
           >
             <ShareIcon size={20} />
           </button>
