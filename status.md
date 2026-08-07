@@ -8,7 +8,7 @@
 
 ## §1. 🟢 สถานะ Git — sync แล้ว (ไม่มีงานค้าง push)
 
-- **push ล่าสุด: `ac469d4`** — fix ลุคที่แชร์หายตอน "เปิดในเบราว์เซอร์" + แถบเตือน in-app browser
+- **push ล่าสุด: `089ff56`** — ปุ่มบันทึก/แชร์รูปลุค 9:16 (ลง IG/TikTok story) + แผนคอนเทนต์ 14 วัน
 - 🌐 **โดเมน `doodstyles.com`** (Hostinger → Vercel nameservers) · SSL ✅ · www เป็น primary
 - ✅ **แชร์ไดนามิก live** — การ์ด 9:16 (sharp+resvg+Kanit) · title "ค้นหาลุคที่ใช่ใน DOOD ✨" · desc "ปัดแต่งชุด จัดลุคที่ใช่ ช้อปได้เลย"
 - 📊 **Vercel Analytics เปิดแล้ว** (dashboard + สคริปต์ live 200) — เก็บ traffic แล้ว
@@ -98,7 +98,7 @@
 
 ## §5. 📝 Change log (ใหม่สุดอยู่บน)
 
-- **2026-08-07** — 📷 **ปุ่มบันทึก/แชร์รูปลุค 9:16 (เสร็จในเครื่อง ยังไม่ push)**: เพิ่มปุ่มรูปข้างปุ่มแชร์เดิมใน `LookBar` + `MobilePriceSheet` → ดึงการ์ด 9:16 (PNG จาก `/api/og?l=`) แล้ว `navigator.share({files})` (มือถือ→เลือก IG/TikTok story) · ไม่รองรับ/แชร์พังใน in-app → ดาวน์โหลดรูปลงเครื่องแทน · `buildCardImageUrl()` ใน lookUrl.ts · `ImageIcon` · handler `handleSaveImage` (loading state กันกดซ้ำ + toast) · tsc+build ผ่าน · **หมายเหตุ: `/api/og` เป็น serverless เทสจริงต้องบน Vercel (หรือ `vercel dev`)** · ต่อยอดจากแผน [planning-content.md](planning-content.md)
+- **2026-08-07** — 📷 **ปุ่มบันทึก/แชร์รูปลุค 9:16 (push `089ff56`)**: เพิ่มปุ่มรูปข้างปุ่มแชร์เดิมใน `LookBar` + `MobilePriceSheet` → ดึงการ์ด 9:16 (PNG จาก `/api/og?l=`) แล้ว `navigator.share({files})` (มือถือ→เลือก IG/TikTok story) · ไม่รองรับ/แชร์พังใน in-app → ดาวน์โหลดรูปลงเครื่องแทน · `buildCardImageUrl()` ใน lookUrl.ts · `ImageIcon` · handler `handleSaveImage` (loading state กันกดซ้ำ + toast) · tsc+build ผ่าน · **หมายเหตุ: `/api/og` เป็น serverless เทสจริงต้องบน Vercel (หรือ `vercel dev`)** · ต่อยอดจากแผน [planning-content.md](planning-content.md)
 - **2026-08-07** — 🎬 **แผนคอนเทนต์ TikTok 14 วัน** ([planning-content.md](planning-content.md)): 6 ฟอร์แมตแม่แบบ + คลังฮุค + ปฏิทิน 14 วัน + สคริปต์เต็ม 7 คลิปแรก + ระบบทำงานคนเดียว (แบตช์) + สเปกวิชวล + กฎวัดผล — ลงมือของ "แพลน B: TikTok/Reels"
 
 - **2026-08-06** — 🔗 **fix ลุคที่แชร์หาย + เตือน in-app browser** (push `ac469d4`): เดิม App.tsx ล้าง `?l=` ออกจาก URL ทันทีที่โหลด → กด "เปิดในเบราว์เซอร์" จาก LINE/เมล ได้ URL เปล่า **ลุคหาย** → แก้ให้**เก็บ `?l=` ไว้จนผู้ใช้เริ่มปัดเอง** (ล้างใน handlePan ครั้งแรก) · `InAppBrowserNotice.tsx` ตรวจ UA (LINE/FB/IG/TikTok/เมล) → แถบบนสุด "เปิดใน Safari/Chrome" + ปุ่มคัดลอกลิงก์ (แก้ต้นเหตุร่วม: in-app browser แยก storage → ล็อกอินไม่ค้าง + ลุคหาย)
