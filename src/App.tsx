@@ -317,7 +317,7 @@ export default function App() {
   // ระหว่างโหลดสินค้า (async — เผื่อวันสลับไปดึงจาก backend) แสดงหน้ารอสั้น ๆ
   if (loading || !selectedItems) {
     return (
-      <div className="flex h-[100svh] w-full items-center justify-center bg-brand-cream">
+      <div className="flex h-[100svh] w-full items-center justify-center bg-neutral-100">
         <div className="animate-pulse text-center">
           <h1 className="font-logo text-3xl text-[#3356D9]">DOOD</h1>
           <p className="mt-2 text-sm text-neutral-400">กำลังโหลด…</p>
@@ -328,7 +328,7 @@ export default function App() {
 
   return (
     <div
-      className="relative mx-auto flex h-[100svh] w-full max-w-md flex-col items-center bg-brand-cream md:max-w-lg lg:h-auto lg:min-h-[100dvh] lg:max-w-7xl lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:px-16 xl:px-24"
+      className="relative mx-auto flex h-[100svh] w-full max-w-md flex-col items-center bg-neutral-100 md:max-w-lg lg:h-auto lg:min-h-[100dvh] lg:max-w-7xl lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:px-16 xl:px-24"
     >
       <InAppBrowserNotice />
       {/* แถบบน (มือถือ): แบรนด์ + tagline ซ้าย, ปุ่มสุ่มลุคขวา */}
@@ -438,7 +438,7 @@ export default function App() {
         onClick={shuffle}
         aria-label="สุ่มลุค"
         style={{ bottom: 'calc(env(safe-area-inset-bottom) + 42px)' }}
-        className="fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand-blue text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90 lg:hidden"
+        className="fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90 lg:hidden"
       >
         🎲
       </button>

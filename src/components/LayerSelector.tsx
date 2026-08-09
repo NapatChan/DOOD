@@ -19,7 +19,7 @@ export default function LayerSelector({ selectedLayer, onSelectLayer }: LayerSel
             onClick={() => onSelectLayer(cat)}
             aria-pressed={active}
             className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors md:px-6 md:py-2.5 md:text-base ${
-              active ? 'bg-neutral-800 text-white' : 'text-neutral-600 hover:bg-neutral-100'
+              active ? 'bg-brand-blue text-white' : 'text-neutral-600 hover:bg-neutral-100'
             }`}
           >
             {CATEGORY_LABEL[cat]}

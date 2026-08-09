@@ -31,7 +31,7 @@ body,
 body {
   margin: 0;
   /* พื้นหลังเต็ม viewport (กันขอบขาวซ้าย-ขวาตอนคอนเทนต์ถูกจำกัดความกว้าง) */
-  background-color: #FBF7EF;
+  background-color: #f5f5f5;
   /* กัน pull-to-refresh / overscroll ระหว่างปัด และห้าม select ตอนลาก */
   overscroll-behavior: none;
   -webkit-user-select: none;
