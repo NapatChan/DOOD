@@ -161,7 +161,7 @@ function LookCard({
                         {item.style ? ` · ${styleLabel(item.style)}` : ''} · {formatBaht(item.price)}
                       </p>
                     </div>
-                    <span className="shrink-0 whitespace-nowrap rounded-full bg-brand-cocoa px-3 py-1.5 text-[11px] font-semibold text-white">
+                    <span className="shrink-0 whitespace-nowrap rounded-full bg-brand-blue px-3 py-1.5 text-[11px] font-semibold text-white">
                       {hasRealLink(item) ? 'ดูร้านค้า ↗' : 'ค้นหา ↗'}
                     </span>
                   </a>

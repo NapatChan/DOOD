@@ -438,7 +438,7 @@ export default function App() {
         onClick={shuffle}
         aria-label="สุ่มลุค"
         style={{ bottom: 'calc(env(safe-area-inset-bottom) + 42px)' }}
-        className="fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90 lg:hidden"
+        className="fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90 lg:hidden"
       >
         🎲
       </button>
@@ -547,7 +547,7 @@ function BagButton({
     >
       🛍️
       {count > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-brand-blue px-1 text-[10px] font-bold tabular-nums text-white ring-2 ring-brand-cream">
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-brand-blue px-1 text-[10px] font-bold tabular-nums text-white ring-2 ring-neutral-100">
           {count}
         </span>
       )}
