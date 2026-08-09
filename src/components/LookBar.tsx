@@ -38,7 +38,7 @@ export default function LookBar({ totalPrice, onWant, onShare }: LookBarProps) {
       <button
         type="button"
         onClick={onWant}
-        className="whitespace-nowrap rounded-full bg-neutral-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition active:scale-95 md:px-7 md:py-3.5 md:text-base"
+        className="whitespace-nowrap rounded-full bg-brand-blue px-5 py-3 text-sm font-bold text-white shadow-sm transition active:scale-95 md:px-7 md:py-3.5 md:text-base"
       >
         อยากได้ลุคนี้ ✨
       </button>

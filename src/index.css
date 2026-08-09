@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* โลโก้ DOOD — ฟอนต์ Bowlby One (self-host) ใช้เฉพาะ wordmark เท่านั้น */
+@font-face {
+  font-family: 'Bowlby One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/bowlby-one.woff2') format('woff2');
+}
+.font-logo {
+  font-family: 'Bowlby One', system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+}
+
 html,
 body,
 #root {
@@ -17,7 +31,7 @@ body,
 body {
   margin: 0;
   /* พื้นหลังเต็ม viewport (กันขอบขาวซ้าย-ขวาตอนคอนเทนต์ถูกจำกัดความกว้าง) */
-  background-color: #f5f5f5;
+  background-color: #FBF7EF;
   /* กัน pull-to-refresh / overscroll ระหว่างปัด และห้าม select ตอนลาก */
   overscroll-behavior: none;
   -webkit-user-select: none;

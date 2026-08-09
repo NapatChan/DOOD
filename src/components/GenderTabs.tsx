@@ -23,7 +23,7 @@ export default function GenderTabs({
           onClick={() => onChange(o.value)}
           aria-pressed={value === o.value}
           className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-            value === o.value ? 'bg-neutral-900 text-white' : 'text-neutral-500'
+            value === o.value ? 'bg-brand-blue text-white' : 'text-neutral-500'
           }`}
         >
           {o.label}

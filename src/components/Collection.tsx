@@ -161,7 +161,7 @@ function LookCard({
                         {item.style ? ` · ${styleLabel(item.style)}` : ''} · {formatBaht(item.price)}
                       </p>
                     </div>
-                    <span className="shrink-0 whitespace-nowrap rounded-full bg-neutral-900 px-3 py-1.5 text-[11px] font-semibold text-white">
+                    <span className="shrink-0 whitespace-nowrap rounded-full bg-brand-cocoa px-3 py-1.5 text-[11px] font-semibold text-white">
                       {hasRealLink(item) ? 'ดูร้านค้า ↗' : 'ค้นหา ↗'}
                     </span>
                   </a>
@@ -266,7 +266,7 @@ export default function Collection({
                   <button
                     type="button"
                     onClick={onLogin}
-                    className="flex w-full items-center gap-2 rounded-2xl bg-neutral-900 px-4 py-2.5 text-left text-sm text-white transition active:scale-[0.99]"
+                    className="flex w-full items-center gap-2 rounded-2xl bg-brand-blue px-4 py-2.5 text-left text-sm text-white transition active:scale-[0.99]"
                   >
                     <span>☁️</span>
                     <span className="flex-1 font-semibold">เข้าสู่ระบบเก็บลุคโปรด</span>

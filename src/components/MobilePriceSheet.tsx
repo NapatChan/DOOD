@@ -108,7 +108,7 @@ export default function MobilePriceSheet({
           <button
             type="button"
             onClick={onWant}
-            className="whitespace-nowrap rounded-full bg-neutral-900 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition active:scale-95"
+            className="whitespace-nowrap rounded-full bg-brand-blue px-6 py-3.5 text-sm font-bold text-white shadow-sm transition active:scale-95"
           >
             อยากได้ลุคนี้ ✨
           </button>

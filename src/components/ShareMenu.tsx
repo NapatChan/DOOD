@@ -59,7 +59,7 @@ export default function ShareMenu({
                 }}
                 className="flex w-full items-center gap-3 rounded-2xl bg-neutral-50 p-3.5 text-left transition active:scale-[0.98] hover:bg-neutral-100"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-white">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-blue text-white">
                   <ShareIcon size={19} />
                 </span>
                 <span className="flex flex-col">

@@ -122,7 +122,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
                   type="button"
                   onClick={handleSend}
                   disabled={busy}
-                  className="mt-4 w-full rounded-2xl bg-neutral-900 py-3.5 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
+                  className="mt-4 w-full rounded-2xl bg-brand-blue py-3.5 text-sm font-bold text-white transition active:scale-[0.98] disabled:opacity-50"
                 >
                   {busy ? 'กำลังส่ง…' : 'ส่งลิงก์เข้าสู่ระบบ'}
                 </button>

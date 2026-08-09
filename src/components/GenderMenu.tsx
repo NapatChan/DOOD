@@ -35,7 +35,7 @@ export default function GenderMenu({
         onClick={() => setOpen((v) => !v)}
         aria-label="กรองตามเพศ"
         aria-expanded={open}
-        className="flex h-11 items-center gap-1 rounded-full bg-white pl-4 pr-3 text-sm font-semibold text-neutral-700 shadow-sm ring-1 ring-black/5 transition active:scale-95"
+        className="flex h-11 items-center gap-1 rounded-full bg-brand-blue pl-4 pr-3 text-sm font-semibold text-white shadow-sm transition active:scale-95"
       >
         {current.label}
         <svg
@@ -62,7 +62,7 @@ export default function GenderMenu({
               }}
               className={`block w-full px-4 py-2 text-left text-sm transition-colors ${
                 value === o.value
-                  ? 'bg-neutral-100 font-bold text-neutral-900'
+                  ? 'bg-neutral-100 font-bold text-brand-blue'
                   : 'text-neutral-600 hover:bg-neutral-50'
               }`}
             >

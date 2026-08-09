@@ -317,9 +317,9 @@ export default function App() {
   // ระหว่างโหลดสินค้า (async — เผื่อวันสลับไปดึงจาก backend) แสดงหน้ารอสั้น ๆ
   if (loading || !selectedItems) {
     return (
-      <div className="flex h-[100svh] w-full items-center justify-center bg-neutral-100">
+      <div className="flex h-[100svh] w-full items-center justify-center bg-brand-cream">
         <div className="animate-pulse text-center">
-          <h1 className="text-3xl font-black tracking-tight text-neutral-800">DOOD</h1>
+          <h1 className="font-logo text-3xl text-[#3356D9]">DOOD</h1>
           <p className="mt-2 text-sm text-neutral-400">กำลังโหลด…</p>
         </div>
       </div>
@@ -328,7 +328,7 @@ export default function App() {
 
   return (
     <div
-      className="relative mx-auto flex h-[100svh] w-full max-w-md flex-col items-center bg-neutral-100 md:max-w-lg lg:h-auto lg:min-h-[100dvh] lg:max-w-7xl lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:px-16 xl:px-24"
+      className="relative mx-auto flex h-[100svh] w-full max-w-md flex-col items-center bg-brand-cream md:max-w-lg lg:h-auto lg:min-h-[100dvh] lg:max-w-7xl lg:flex-row lg:items-center lg:justify-between lg:gap-12 lg:px-16 xl:px-24"
     >
       <InAppBrowserNotice />
       {/* แถบบน (มือถือ): แบรนด์ + tagline ซ้าย, ปุ่มสุ่มลุคขวา */}
@@ -337,7 +337,7 @@ export default function App() {
         style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
       >
         <div>
-          <h1 className="text-xl font-black leading-none tracking-tight text-neutral-900">DOOD</h1>
+          <h1 className="font-logo text-xl leading-none text-[#3356D9]">DOOD</h1>
           <p className="mt-1 text-[11px] leading-none text-neutral-500">Make it your style</p>
         </div>
         <div className="flex items-center gap-2">
@@ -410,7 +410,7 @@ export default function App() {
       {/* คอลัมน์คอนโทรล (desktop เท่านั้น): หัวข้อ + เลือกชั้น + ราคา */}
       <footer className="hidden w-96 flex-col items-start gap-4 lg:flex">
         <div className="mb-4">
-          <h1 className="text-6xl font-black tracking-tight text-neutral-800">DOOD</h1>
+          <h1 className="font-logo text-6xl text-[#3356D9]">DOOD</h1>
           <p className="mt-3 text-neutral-500">Make it your style</p>
         </div>
         <GenderTabs value={genderFilter} onChange={setGenderFilter} />
@@ -438,7 +438,7 @@ export default function App() {
         onClick={shuffle}
         aria-label="สุ่มลุค"
         style={{ bottom: 'calc(env(safe-area-inset-bottom) + 42px)' }}
-        className="fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90 lg:hidden"
+        className="fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-brand-blue text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90 lg:hidden"
       >
         🎲
       </button>
@@ -547,7 +547,7 @@ function BagButton({
     >
       🛍️
       {count > 0 && (
-        <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-neutral-900 px-1 text-[10px] font-bold tabular-nums text-white ring-2 ring-neutral-100">
+        <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-brand-blue px-1 text-[10px] font-bold tabular-nums text-white ring-2 ring-brand-cream">
           {count}
         </span>
       )}
