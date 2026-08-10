@@ -10,6 +10,9 @@ dist/
 .env.*
 !.env.example
 
+# Canva browser profile (เก็บ session/cookie ล็อกอิน — ห้ามขึ้น repo)
+.canva-profile/
+
 # ไฟล์ชั่วคราว/ทดสอบ
 scratch-*
 scratch-shots/
