@@ -86,3 +86,61 @@ export async function deleteProduct(id: string): Promise<void> {
   const res = await fetch(`${BASE}/${encodeURIComponent(id)}`, { method: 'DELETE' });
   await parse<{ ok: boolean }>(res);
 }
+
+// ─── ลุคแนะนำ (curated_looks) ────────────────────────────────────────
+// ลุค = id สินค้าแต่ละหมวด (null = ไม่ใส่ชิ้นนั้น) + ชื่อ/ธีม
+export interface CuratedLook {
+  id: string;
+  label: string;
+  hatId: string | null;
+  topId: string | null;
+  pantsId: string | null;
+  gender: Gender; // เพศของลุค — ใช้จับคู่กับตัวกรองเพศฝั่งลูกค้า
+  sortOrder: number;
+  isActive: boolean;
+}
+export interface CuratedLookInput {
+  label?: string;
+  hatId?: string | null;
+  topId?: string | null;
+  pantsId?: string | null;
+  gender?: Gender;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+const CURATED = '/api/curated-looks';
+
+export async function listCuratedLooks(): Promise<CuratedLook[]> {
+  const res = await fetch(CURATED);
+  const data = await parse<{ looks: CuratedLook[] }>(res);
+  return data.looks;
+}
+
+export async function createCuratedLook(input: CuratedLookInput): Promise<CuratedLook> {
+  const res = await fetch(CURATED, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const data = await parse<{ look: CuratedLook }>(res);
+  return data.look;
+}
+
+export async function updateCuratedLook(
+  id: string,
+  input: CuratedLookInput,
+): Promise<CuratedLook> {
+  const res = await fetch(`${CURATED}/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const data = await parse<{ look: CuratedLook }>(res);
+  return data.look;
+}
+
+export async function deleteCuratedLook(id: string): Promise<void> {
+  const res = await fetch(`${CURATED}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  await parse<{ ok: boolean }>(res);
+}

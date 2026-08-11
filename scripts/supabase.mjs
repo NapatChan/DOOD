@@ -60,6 +60,38 @@ export async function dbUpdate(id, patch) {
   return (await res.json())[0];
 }
 
+// ---------- DB (ระบุตารางได้ — ใช้กับตารางอื่นเช่น curated_looks) ----------
+export async function dbSelectFrom(table, query) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?${query}`, { headers: svcHeaders() });
+  if (!res.ok) throw new Error(`select ${table} ล้มเหลว: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+export async function dbInsertInto(table, row) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: svcHeaders({ 'Content-Type': 'application/json', Prefer: 'return=representation' }),
+    body: JSON.stringify(row),
+  });
+  if (!res.ok) throw new Error(`insert ${table} ล้มเหลว: ${res.status} ${await res.text()}`);
+  return (await res.json())[0];
+}
+export async function dbUpdateIn(table, id, patch) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: svcHeaders({ 'Content-Type': 'application/json', Prefer: 'return=representation' }),
+    body: JSON.stringify(patch),
+  });
+  if (!res.ok) throw new Error(`update ${table} ล้มเหลว: ${res.status} ${await res.text()}`);
+  return (await res.json())[0];
+}
+export async function dbDeleteFrom(table, id) {
+  const res = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: svcHeaders(),
+  });
+  if (!res.ok) throw new Error(`delete ${table} ล้มเหลว: ${res.status} ${await res.text()}`);
+}
+
 // ---------- Storage ----------
 export function publicUrl(objectPath) {
   return `${SB_URL}/storage/v1/object/public/${BUCKET}/${objectPath}`;

@@ -1,5 +1,5 @@
 import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AuthModal from './components/AuthModal';
 import Collection from './components/Collection';
 import ColorSwatchPicker from './components/ColorSwatchPicker';
@@ -19,6 +19,7 @@ import { useAuth } from './hooks/useAuth';
 import { useSavedLooks } from './hooks/useSavedLooks';
 import { useWardrobe } from './hooks/useWardrobe';
 import { buildCardImageUrl, buildShareUrl, parseLookFromSearch } from './lib/lookUrl';
+import { getCuratedLooks, looksForGender, type CuratedLookData } from './data/curatedLooksSource';
 import { CATEGORIES, type Category } from './types';
 
 // เกณฑ์ตัดสินว่า "ปัดสำเร็จ" — ระยะหรือความเร็วอย่างใดอย่างหนึ่งถึง
@@ -81,13 +82,68 @@ export default function App() {
   // เปิดลิงก์ที่เพื่อนแชร์มา (?l=...) → ใส่ลุคนั้นทันทีเมื่อสินค้าโหลดเสร็จ
   // หมายเหตุ: "เก็บ ?l= ไว้ใน URL" จนกว่าผู้ใช้จะเริ่มปัดเอง (ดู handlePan) —
   // ไม่งั้นถ้า in-app browser (LINE/เมล) กด "เปิดในเบราว์เซอร์" จะได้ URL เปล่า ลุคหาย
-  const appliedSharedRef = useRef(false);
+  // ── ลุคแนะนำ (curated) + ลุคเริ่มต้นตอนเปิดแอป ──
+  const [curated, setCurated] = useState<CuratedLookData[]>([]);
+  const curatedIdxRef = useRef(-1);
+  const openedRef = useRef(false); // ใส่ลุคเริ่มต้นแล้ว (แชร์ หรือ ลุคแนะนำ) — ทำครั้งเดียว
   useEffect(() => {
-    if (loading || appliedSharedRef.current) return;
-    appliedSharedRef.current = true;
+    getCuratedLooks().then(setCurated);
+  }, []);
+
+  // ลุคแนะนำที่ตรงตัวกรองเพศปัจจุบัน (ทั้งหมด=ทุกลุค · หญิง/ชาย=เพศนั้น+ทุกเพศ)
+  const curatedForGender = useMemo(
+    () => looksForGender(curated, genderFilter),
+    [curated, genderFilter],
+  );
+
+  // เปลี่ยนเพศ → เริ่มวนลุคใหม่ (กัน index ค้างจากชุดเดิม)
+  useEffect(() => {
+    curatedIdxRef.current = -1;
+  }, [genderFilter]);
+
+  // ใส่ลุคแนะนำลุคที่ i (จากชุดที่ตรงเพศ) — คงตัวกรองเพศไว้ (keepGender)
+  const applyCuratedLook = useCallback(
+    (i: number): boolean => {
+      const look = curatedForGender[i];
+      if (!look) return false;
+      const { missing } = applyLook(look.items, look.hidden, { keepGender: true });
+      return missing.length === 0;
+    },
+    [curatedForGender, applyLook],
+  );
+
+  // ไปลุคแนะนำถัดไป (ข้ามลุคที่ชิ้นหาย) — ไม่มีลุคที่ใช้ได้เลย → สุ่มปกติ
+  const nextCurated = useCallback(() => {
+    const n = curatedForGender.length;
+    if (!n) return shuffle();
+    for (let s = 1; s <= n; s++) {
+      const i = (((curatedIdxRef.current + s) % n) + n) % n;
+      if (applyCuratedLook(i)) {
+        curatedIdxRef.current = i;
+        return;
+      }
+    }
+    shuffle();
+  }, [curatedForGender, applyCuratedLook, shuffle]);
+
+  // ① ลุคจากลิงก์แชร์ (?l=) มาก่อนเสมอ
+  useEffect(() => {
+    if (loading || openedRef.current) return;
     const parsed = parseLookFromSearch(window.location.search);
-    if (parsed) applyLook(parsed.items, parsed.hidden);
+    if (parsed) {
+      openedRef.current = true;
+      applyLook(parsed.items, parsed.hidden);
+    }
   }, [loading, applyLook]);
+
+  // ② ไม่มีลิงก์แชร์ → เปิดแอปเจอลุคแนะนำ (คนเข้าใหม่ ตัวกรอง='ทั้งหมด' → สุ่มจากทุกลุค)
+  useEffect(() => {
+    if (loading || openedRef.current || curatedForGender.length === 0) return;
+    if (parseLookFromSearch(window.location.search)) return; // มีลิงก์แชร์ → ให้ ① จัดการ
+    openedRef.current = true;
+    curatedIdxRef.current = Math.floor(Math.random() * curatedForGender.length) - 1;
+    nextCurated();
+  }, [loading, curatedForGender, nextCurated]);
 
   const handlePan = (_e: unknown, info: PanInfo) => {
     if (Math.abs(info.offset.x) > 8 || Math.abs(info.offset.y) > 8) {
@@ -413,7 +469,18 @@ export default function App() {
           <h1 className="font-logo text-6xl text-[#3356D9]">DOOD</h1>
           <p className="mt-3 text-neutral-500">Make it your style</p>
         </div>
-        <GenderTabs value={genderFilter} onChange={setGenderFilter} />
+        <div className="flex items-center gap-3">
+          <GenderTabs value={genderFilter} onChange={setGenderFilter} />
+          {curatedForGender.length > 0 && (
+            <button
+              type="button"
+              onClick={nextCurated}
+              className="flex h-11 shrink-0 items-center rounded-full bg-brand-blue px-4 text-sm font-bold text-white shadow-sm transition active:scale-95"
+            >
+              ✨ ลุคแนะนำ
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-3">
           <LayerSelector selectedLayer={selectedLayer} onSelectLayer={selectLayer} />
           <button
@@ -432,16 +499,29 @@ export default function App() {
         </div>
       </footer>
 
-      {/* ปุ่มสุ่มลุค — ลอยมุมล่างขวา (มือถือเท่านั้น) กดถนัดนิ้วโป้ง เหนือแถบราคา */}
-      <button
-        type="button"
-        onClick={shuffle}
-        aria-label="สุ่มลุค"
+      {/* มุมล่างขวา (มือถือ): ลุคแนะนำ + สุ่มลุค — กดถนัดนิ้วโป้ง เหนือแถบราคา */}
+      <div
         style={{ bottom: 'calc(env(safe-area-inset-bottom) + 42px)' }}
-        className="fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90 lg:hidden"
+        className="fixed right-4 z-30 flex flex-col items-end gap-2 lg:hidden"
       >
-        🎲
-      </button>
+        {curatedForGender.length > 0 && (
+          <button
+            type="button"
+            onClick={nextCurated}
+            className="rounded-full bg-brand-blue px-4 py-2.5 text-sm font-bold text-white shadow-lg ring-1 ring-black/10 transition active:scale-95"
+          >
+            ✨ ลุคแนะนำ
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={shuffle}
+          aria-label="สุ่มลุค"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90"
+        >
+          🎲
+        </button>
+      </div>
 
       {/* ชิปเลือกสี (มือถือ) — มุมซ้ายล่าง (คู่กับ 🎲 ขวาล่าง) ตำแหน่งคงที่ ไม่ทับสินค้า · ต่ำกว่า price sheet (z-40) */}
       <div

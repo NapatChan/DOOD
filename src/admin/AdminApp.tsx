@@ -19,6 +19,7 @@ import {
 } from './api';
 import CropBox from './CropBox';
 import FittingPreview, { type PreviewGarment } from './FittingPreview';
+import CuratedLooks from './CuratedLooks';
 
 // รูปสินค้ามาจาก Supabase เป็น URL เต็ม (http…) — ใช้ตรง ๆ; ถ้าเป็น path เดิม (สแนปช็อต) prefix ให้
 function assetUrl(image: string | undefined | null): string | undefined {
@@ -93,6 +94,7 @@ function toLocalYMD(iso?: string): string {
 export default function AdminApp() {
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<'products' | 'looks'>('products'); // แท็บ: สินค้า | ลุคแนะนำ
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -332,7 +334,29 @@ export default function AdminApp() {
           <div className="mb-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white">{notice}</div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,340px)_1fr]">
+        {/* แท็บสลับมุมมอง: สินค้า | ลุคแนะนำ */}
+        <div className="mb-6 inline-flex gap-1 rounded-full bg-white p-1 shadow-sm ring-1 ring-black/5">
+          {(['products', 'looks'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                view === v ? 'bg-brand-blue text-white' : 'text-neutral-600 hover:bg-neutral-100'
+              }`}
+            >
+              {v === 'products' ? 'สินค้า' : '✨ ลุคแนะนำ'}
+            </button>
+          ))}
+        </div>
+
+        {view === 'looks' && <CuratedLooks products={products} onNotice={setNotice} />}
+
+        <div
+          className={`grid gap-6 lg:grid-cols-[minmax(0,340px)_1fr] ${
+            view !== 'products' ? 'hidden' : ''
+          }`}
+        >
           {/* ── ฟอร์มเพิ่ม/แก้ไข ── */}
           <div
             ref={formTopRef}

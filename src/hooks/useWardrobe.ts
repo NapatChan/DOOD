@@ -163,6 +163,7 @@ export function useWardrobe() {
     (
       lookItems: Record<Category, string>,
       lookHidden: Record<Category, boolean>,
+      opts?: { keepGender?: boolean },
     ): { missing: Category[] } => {
       if (!items) return { missing: [] };
       const found: Partial<Record<Category, number>> = {};
@@ -172,7 +173,8 @@ export function useWardrobe() {
         if (idx >= 0) found[cat] = idx;
         else if (!lookHidden[cat]) missing.push(cat); // ชิ้นที่ไม่ใส่อยู่แล้ว ไม่นับว่า "หาย"
       });
-      setGenderFilter('all'); // ให้เห็นทุกชิ้นในลุคแน่ ๆ
+      // ปกติรีเซ็ตตัวกรองเป็น 'ทั้งหมด' ให้เห็นทุกชิ้น — ยกเว้นลุคแนะนำที่แมตช์เพศไว้แล้ว (คงตัวกรองเพศเดิม)
+      if (!opts?.keepGender) setGenderFilter('all');
       setState((s) => {
         const nextIndex = { ...s.currentIndex };
         (Object.keys(found) as Category[]).forEach((cat) => {

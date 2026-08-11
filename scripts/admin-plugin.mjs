@@ -15,6 +15,10 @@ import {
   dbSelect,
   dbInsert,
   dbUpdate,
+  dbSelectFrom,
+  dbInsertInto,
+  dbUpdateIn,
+  dbDeleteFrom,
   uploadObject,
   deleteObject,
   downloadObject,
@@ -161,6 +165,25 @@ function validateFields(body, { partial } = {}) {
   return errors;
 }
 
+// ลุคแนะนำ: DB row → รูปแบบที่ฝั่ง client ใช้
+function toCuratedLook(row) {
+  return {
+    id: row.id,
+    label: row.label || '',
+    hatId: row.hat_id || null,
+    topId: row.top_id || null,
+    pantsId: row.pants_id || null,
+    gender: row.gender || 'unisex',
+    sortOrder: row.sort_order ?? 0,
+    isActive: row.is_active !== false,
+  };
+}
+// รับ id 3 หมวดจาก body (ค่าว่าง/undefined → null = ไม่ใส่ชิ้นนั้น)
+function pickLookIds(body) {
+  const clean = (v) => (v ? String(v) : null);
+  return { hat_id: clean(body.hatId), top_id: clean(body.topId), pants_id: clean(body.pantsId) };
+}
+
 // sort_order ถัดไป = มากสุด + 1 (ต่อท้ายรายการ)
 async function nextSortOrder() {
   const rows = await dbSelect('select=sort_order&order=sort_order.desc.nullslast&limit=1');
@@ -175,7 +198,8 @@ export function adminApiPlugin() {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const url = (req.url || '').split('?')[0];
-        if (!url.startsWith('/api/products')) return next();
+        const isCurated = url.startsWith('/api/curated-looks');
+        if (!url.startsWith('/api/products') && !isCurated) return next();
 
         if (!hasSupabase) {
           return sendJson(res, 500, {
@@ -184,6 +208,62 @@ export function adminApiPlugin() {
         }
 
         try {
+          // ===== ลุคแนะนำ (curated_looks) =====
+          if (isCurated) {
+            const CT = 'curated_looks';
+
+            // GET — ทั้งหมด (รวมที่ปิดอยู่ ให้ admin เห็นครบ) เรียงตาม sort_order
+            if (req.method === 'GET' && url === '/api/curated-looks') {
+              const rows = await dbSelectFrom(CT, 'select=*&order=sort_order');
+              return sendJson(res, 200, { looks: rows.map(toCuratedLook) });
+            }
+
+            // POST — เพิ่มลุคใหม่
+            if (req.method === 'POST' && url === '/api/curated-looks') {
+              const body = JSON.parse((await readBody(req)).toString('utf8') || '{}');
+              const ids = pickLookIds(body);
+              if (!ids.hat_id && !ids.top_id && !ids.pants_id) {
+                return sendJson(res, 400, { errors: ['ต้องเลือกอย่างน้อย 1 ชิ้น (หมวก/เสื้อ/กางเกง)'] });
+              }
+              const existing = await dbSelectFrom(CT, 'select=sort_order&order=sort_order.desc.nullslast&limit=1');
+              const nextOrder = Number.isFinite(existing[0]?.sort_order) ? existing[0].sort_order + 1 : 0;
+              const row = {
+                label: (body.label || '').trim() || null,
+                ...ids,
+                gender: normGender(body.gender),
+                sort_order: nextOrder,
+                is_active: body.isActive === false ? false : true,
+              };
+              const inserted = await dbInsertInto(CT, row);
+              return sendJson(res, 201, { look: toCuratedLook(inserted) });
+            }
+
+            // PUT | DELETE /api/curated-looks/:id
+            const cm = url.match(/^\/api\/curated-looks\/([^/]+)$/);
+            if (cm) {
+              const id = decodeURIComponent(cm[1]);
+              if (req.method === 'DELETE') {
+                await dbDeleteFrom(CT, id); // hard delete — ไม่มีใครอ้างถึง (ต่างจากสินค้า)
+                return sendJson(res, 200, { ok: true });
+              }
+              if (req.method === 'PUT') {
+                const body = JSON.parse((await readBody(req)).toString('utf8') || '{}');
+                const patch = {};
+                if (body.label !== undefined) patch.label = String(body.label).trim() || null;
+                if (body.hatId !== undefined) patch.hat_id = body.hatId || null;
+                if (body.topId !== undefined) patch.top_id = body.topId || null;
+                if (body.pantsId !== undefined) patch.pants_id = body.pantsId || null;
+                if (body.gender !== undefined) patch.gender = normGender(body.gender);
+                if (body.isActive !== undefined) patch.is_active = !!body.isActive;
+                if (body.sortOrder !== undefined) patch.sort_order = Number(body.sortOrder);
+                const updated = await dbUpdateIn(CT, id, patch);
+                return sendJson(res, 200, { look: toCuratedLook(updated) });
+              }
+            }
+
+            return sendJson(res, 404, { errors: ['ไม่พบเส้นทางนี้'] });
+          }
+
           // GET /api/products — รายการ active ทั้งหมด
           if (req.method === 'GET' && url === '/api/products') {
             const rows = await dbSelect('select=*&is_active=eq.true&order=sort_order');
