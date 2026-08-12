@@ -1,5 +1,5 @@
 import { animate, motion, useMotionValue, type PanInfo } from 'framer-motion';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import AuthModal from './components/AuthModal';
 import Collection from './components/Collection';
 import ColorSwatchPicker from './components/ColorSwatchPicker';
@@ -20,7 +20,7 @@ import { useSavedLooks } from './hooks/useSavedLooks';
 import { useWardrobe } from './hooks/useWardrobe';
 import { buildCardImageUrl, buildShareUrl, parseLookFromSearch } from './lib/lookUrl';
 import { getCuratedLooks, looksForGender, type CuratedLookData } from './data/curatedLooksSource';
-import { CATEGORIES, type Category } from './types';
+import { CATEGORIES, type Category, type GenderFilter } from './types';
 
 // เกณฑ์ตัดสินว่า "ปัดสำเร็จ" — ระยะหรือความเร็วอย่างใดอย่างหนึ่งถึง
 const OFFSET_THRESHOLD = 60; // px
@@ -82,49 +82,21 @@ export default function App() {
   // เปิดลิงก์ที่เพื่อนแชร์มา (?l=...) → ใส่ลุคนั้นทันทีเมื่อสินค้าโหลดเสร็จ
   // หมายเหตุ: "เก็บ ?l= ไว้ใน URL" จนกว่าผู้ใช้จะเริ่มปัดเอง (ดู handlePan) —
   // ไม่งั้นถ้า in-app browser (LINE/เมล) กด "เปิดในเบราว์เซอร์" จะได้ URL เปล่า ลุคหาย
-  // ── ลุคแนะนำ (curated) + ลุคเริ่มต้นตอนเปิดแอป ──
+  // ── ลุคแนะนำ (curated) — โชว์ "เฉพาะ session แรกที่เข้าเว็บ" เพื่อ first impression ──
   const [curated, setCurated] = useState<CuratedLookData[]>([]);
-  const curatedIdxRef = useRef(-1);
   const openedRef = useRef(false); // ใส่ลุคเริ่มต้นแล้ว (แชร์ หรือ ลุคแนะนำ) — ทำครั้งเดียว
+  const genderRecRef = useRef<Set<GenderFilter>>(new Set()); // เพศที่แนะนำลุคไปแล้ว (กันทับซ้ำ)
+  // เข้าครั้งแรกจริงไหม — อ่าน localStorage ครั้งเดียวตอน mount แล้วคงค่าไว้ทั้ง session
+  const [isFirstVisit] = useState(() => {
+    try {
+      return !localStorage.getItem('dood_seen');
+    } catch {
+      return true; // โหมดส่วนตัว/ปิด storage → ถือว่าเข้าครั้งแรก
+    }
+  });
   useEffect(() => {
     getCuratedLooks().then(setCurated);
   }, []);
-
-  // ลุคแนะนำที่ตรงตัวกรองเพศปัจจุบัน (ทั้งหมด=ทุกลุค · หญิง/ชาย=เพศนั้น+ทุกเพศ)
-  const curatedForGender = useMemo(
-    () => looksForGender(curated, genderFilter),
-    [curated, genderFilter],
-  );
-
-  // เปลี่ยนเพศ → เริ่มวนลุคใหม่ (กัน index ค้างจากชุดเดิม)
-  useEffect(() => {
-    curatedIdxRef.current = -1;
-  }, [genderFilter]);
-
-  // ใส่ลุคแนะนำลุคที่ i (จากชุดที่ตรงเพศ) — คงตัวกรองเพศไว้ (keepGender)
-  const applyCuratedLook = useCallback(
-    (i: number): boolean => {
-      const look = curatedForGender[i];
-      if (!look) return false;
-      const { missing } = applyLook(look.items, look.hidden, { keepGender: true });
-      return missing.length === 0;
-    },
-    [curatedForGender, applyLook],
-  );
-
-  // ไปลุคแนะนำถัดไป (ข้ามลุคที่ชิ้นหาย) — ไม่มีลุคที่ใช้ได้เลย → สุ่มปกติ
-  const nextCurated = useCallback(() => {
-    const n = curatedForGender.length;
-    if (!n) return shuffle();
-    for (let s = 1; s <= n; s++) {
-      const i = (((curatedIdxRef.current + s) % n) + n) % n;
-      if (applyCuratedLook(i)) {
-        curatedIdxRef.current = i;
-        return;
-      }
-    }
-    shuffle();
-  }, [curatedForGender, applyCuratedLook, shuffle]);
 
   // ① ลุคจากลิงก์แชร์ (?l=) มาก่อนเสมอ
   useEffect(() => {
@@ -136,14 +108,34 @@ export default function App() {
     }
   }, [loading, applyLook]);
 
-  // ② ไม่มีลิงก์แชร์ → เปิดแอปเจอลุคแนะนำ (คนเข้าใหม่ ตัวกรอง='ทั้งหมด' → สุ่มจากทุกลุค)
+  // ② เข้าเว็บครั้งแรก (ไม่มีลิงก์แชร์) → สุ่มลุคแนะนำ 1 ลุค (ทุกเพศ)
+  //    คนเก่ากลับมา → เจอตัวเปล่า เริ่มปัดเองได้เลย · จดว่าเคยเข้าแล้วลง localStorage
   useEffect(() => {
-    if (loading || openedRef.current || curatedForGender.length === 0) return;
+    if (loading || openedRef.current || curated.length === 0) return;
     if (parseLookFromSearch(window.location.search)) return; // มีลิงก์แชร์ → ให้ ① จัดการ
     openedRef.current = true;
-    curatedIdxRef.current = Math.floor(Math.random() * curatedForGender.length) - 1;
-    nextCurated();
-  }, [loading, curatedForGender, nextCurated]);
+    try {
+      localStorage.setItem('dood_seen', '1');
+    } catch {
+      /* ปิด storage → ข้าม */
+    }
+    if (!isFirstVisit) return; // เคยเข้าแล้ว → ไม่ใส่ลุค
+    const look = curated[Math.floor(Math.random() * curated.length)];
+    applyLook(look.items, look.hidden);
+  }, [loading, curated, applyLook, isFirstVisit]);
+
+  // ③ session แรก + กดเลือกเพศ (หญิง/ชาย) ครั้งแรกของเพศนั้น → เด้งลุคแนะนำของเพศนั้น
+  //    keepGender: คงตัวกรองเพศไว้ · กดเพศละครั้งเดียว (แต่งต่อแล้วสลับกลับ ไม่ทับ)
+  useEffect(() => {
+    if (!isFirstVisit || loading || curated.length === 0) return;
+    if (genderFilter === 'all') return; // "ทั้งหมด" ไม่เด้งลุค
+    if (genderRecRef.current.has(genderFilter)) return; // เพศนี้แนะนำไปแล้ว
+    const pool = looksForGender(curated, genderFilter); // เพศนั้น + ทุกเพศ
+    if (pool.length === 0) return;
+    genderRecRef.current.add(genderFilter);
+    const look = pool[Math.floor(Math.random() * pool.length)];
+    applyLook(look.items, look.hidden, { keepGender: true });
+  }, [genderFilter, isFirstVisit, loading, curated, applyLook]);
 
   const handlePan = (_e: unknown, info: PanInfo) => {
     if (Math.abs(info.offset.x) > 8 || Math.abs(info.offset.y) > 8) {
@@ -471,15 +463,6 @@ export default function App() {
         </div>
         <div className="flex items-center gap-3">
           <GenderTabs value={genderFilter} onChange={setGenderFilter} />
-          {curatedForGender.length > 0 && (
-            <button
-              type="button"
-              onClick={nextCurated}
-              className="flex h-11 shrink-0 items-center rounded-full bg-brand-blue px-4 text-sm font-bold text-white shadow-sm transition active:scale-95"
-            >
-              ✨ ลุคแนะนำ
-            </button>
-          )}
         </div>
         <div className="flex items-center gap-3">
           <LayerSelector selectedLayer={selectedLayer} onSelectLayer={selectLayer} />
@@ -499,20 +482,11 @@ export default function App() {
         </div>
       </footer>
 
-      {/* มุมล่างขวา (มือถือ): ลุคแนะนำ + สุ่มลุค — กดถนัดนิ้วโป้ง เหนือแถบราคา */}
+      {/* มุมล่างขวา (มือถือ): สุ่มลุค — กดถนัดนิ้วโป้ง เหนือแถบราคา */}
       <div
         style={{ bottom: 'calc(env(safe-area-inset-bottom) + 42px)' }}
         className="fixed right-4 z-30 flex flex-col items-end gap-2 lg:hidden"
       >
-        {curatedForGender.length > 0 && (
-          <button
-            type="button"
-            onClick={nextCurated}
-            className="rounded-full bg-brand-blue px-4 py-2.5 text-sm font-bold text-white shadow-lg ring-1 ring-black/10 transition active:scale-95"
-          >
-            ✨ ลุคแนะนำ
-          </button>
-        )}
         <button
           type="button"
           onClick={shuffle}
