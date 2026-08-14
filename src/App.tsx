@@ -55,6 +55,7 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [savingImage, setSavingImage] = useState(false);
+  const [savePreview, setSavePreview] = useState<string | null>(null); // มือถือ: รูปเต็มจอให้กดค้างบันทึกลงอัลบั้ม
 
   // gesture ปัดแนวนอน "ทั่วทั้งจอ" — เลื่อนชั้นที่เลือกตามนิ้ว แล้วสลับชิ้นตอนปล่อย
   const dragX = useMotionValue(0);
@@ -237,6 +238,7 @@ export default function App() {
       {} as Record<Category, string>,
     );
     const url = buildCardImageUrl(idMap, state.hidden);
+    // เดสก์ท็อป: โหลดลง Downloads ได้เลย (ถูกต้องบนเดสก์ท็อป)
     const download = (blob: Blob) => {
       const objUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -248,6 +250,12 @@ export default function App() {
       URL.revokeObjectURL(objUrl);
       showToast('บันทึกรูปลุคแล้ว 📷 เอาไปลง story ได้เลย');
     };
+    // มือถือ: <a download> ลงไปแอป "ไฟล์" ไม่เข้าแกลเลอรี่ → โชว์รูปเต็มจอให้กดค้างบันทึกลงอัลบั้มแทน
+    const isTouch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
+    const saveFallback = (blob: Blob) => {
+      if (isTouch) setSavePreview(URL.createObjectURL(blob));
+      else download(blob);
+    };
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`สร้างรูปไม่สำเร็จ (${res.status})`);
@@ -255,13 +263,14 @@ export default function App() {
       const file = new File([blob], 'dood-look.png', { type: 'image/png' });
       if (navigator.canShare?.({ files: [file] })) {
         try {
-          await navigator.share({ files: [file], text: 'ลุคของฉันจาก DOOD 👗 doodstyles.com' });
+          // ไฟล์อย่างเดียว (ไม่แนบ text) → บน iOS ปุ่ม "บันทึกภาพ" โผล่ชัวร์ (แนบ text แล้วบางทีหาย)
+          await navigator.share({ files: [file] });
         } catch (e) {
-          // ผู้ใช้กดยกเลิก = ไม่ต้องทำอะไร · แชร์พังจริง (เช่น in-app browser) → บันทึกลงเครื่องแทน
-          if ((e as Error)?.name !== 'AbortError') download(blob);
+          // ผู้ใช้กดยกเลิก = ไม่ต้องทำอะไร · แชร์พังจริง (เช่น in-app browser) → fallback
+          if ((e as Error)?.name !== 'AbortError') saveFallback(blob);
         }
       } else {
-        download(blob);
+        saveFallback(blob);
       }
     } catch {
       showToast('สร้างรูปไม่สำเร็จ ลองใหม่อีกครั้ง');
@@ -554,6 +563,33 @@ export default function App() {
       />
 
       <Toast message={toast} />
+
+      {/* มือถือ: รูปเต็มจอให้กดค้าง → "บันทึกลงในรูปภาพ" (เข้าแกลเลอรี่ได้จริง ต่างจากโหลดลงไฟล์) */}
+      {savePreview && (
+        <div
+          className="fixed inset-0 z-[70] flex flex-col items-center justify-center gap-4 bg-black/90 p-4"
+          onClick={() => {
+            URL.revokeObjectURL(savePreview);
+            setSavePreview(null);
+          }}
+        >
+          <p className="text-center text-sm font-bold text-white">
+            กดค้างที่รูป → เลือก “บันทึกลงในรูปภาพ” 📷
+          </p>
+          <img
+            src={savePreview}
+            alt="ลุคของฉัน"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[80vh] w-auto rounded-2xl shadow-2xl"
+          />
+          <button
+            type="button"
+            className="rounded-full bg-white/15 px-5 py-2 text-sm font-bold text-white backdrop-blur transition active:scale-95"
+          >
+            แตะที่ว่างเพื่อปิด
+          </button>
+        </div>
+      )}
     </div>
   );
 }
