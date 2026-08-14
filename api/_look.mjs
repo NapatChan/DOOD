@@ -4,6 +4,7 @@
 import sharp from 'sharp';
 import { Resvg } from '@resvg/resvg-js';
 import QRCode from 'qrcode';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -28,6 +29,17 @@ export const W = 1080, H = 1920; // 9:16 IG story / TikTok
 // ตำแหน่ง QR มุมขวาล่างการ์ด (สแกนเปิดลุคนี้บนเว็บ — ให้ story ที่กดลิงก์ไม่ได้ดึง traffic ได้)
 const QR_SIZE = 190, QR_LEFT = W - 56 - QR_SIZE, QR_TOP = 1640;
 const DEFAULT_ORIGIN = 'https://www.doodstyles.com';
+const BRAND_BLUE = '#3356D9';
+// สีเน้น: คุมทั้งโลโก้ + ราคารวม (สลับ blue/ดำ ที่เดียว)
+const ACCENT = '#1a1a1a';
+const ACCENT_RGB = { r: parseInt(ACCENT.slice(1, 3), 16), g: parseInt(ACCENT.slice(3, 5), 16), b: parseInt(ACCENT.slice(5, 7), 16) };
+
+// โลโก้ wordmark "DOOD" (โปร่ง) หัวการ์ด — โหลดครั้งเดียว · ไม่มีไฟล์ → fallback เป็นตัวหนังสือ
+const LOGO_W = 400, LOGO_TOP = 128, LOGO_LEFT = Math.round((W - LOGO_W) / 2);
+let LOGO_BUF = null;
+try {
+  LOGO_BUF = fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '_logo', 'dood-wordmark.png'));
+} catch { /* ไม่มีโลโก้ → ใช้ตัวหนังสือ DOOD แทน */ }
 
 // จัดวางเหมือนในเว็ป (src/types + Mascot): แบ่งพื้นที่แนวตั้งตาม LAYER_GROW + จุดยึด + scale รายชิ้น
 const LAYER_GROW = { hat: 0.8, top: 2.0, pants: 3.0 };
@@ -98,7 +110,7 @@ export function lookMeta({ items, hidden }, byId) {
 }
 
 // ---------- พื้นหลัง + ข้อความ (ฟอนต์ Kanit ผ่าน resvg — มี ฿ + ไม่พึ่งฟอนต์ระบบ) ----------
-function backgroundSvg(totalPrice, hasQr) {
+function backgroundSvg(totalPrice, hasQr, hasLogo) {
   const cx = W / 2;
   const t = (x, y, anchor, size, weight, fill, ls, s) =>
     `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="Kanit" font-weight="${weight}" font-size="${size}" letter-spacing="${ls}" fill="${fill}">${esc(s)}</text>`;
@@ -110,14 +122,14 @@ function backgroundSvg(totalPrice, hasQr) {
     : '';
   return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
   <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#f7f5f2"/><stop offset="1" stop-color="#eae7e2"/>
+    <stop offset="0" stop-color="#fffefc"/><stop offset="1" stop-color="#f5f2ec"/>
   </linearGradient></defs>
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
-  ${t(cx, 215, 'middle', 96, 900, '#1a1a1a', -2, 'DOOD')}
-  ${t(cx, 265, 'middle', 32, 400, '#9a938c', 1, 'Make it your style')}
+  ${hasLogo ? '' : t(cx, 215, 'middle', 96, 900, ACCENT, -2, 'DOOD')}
+  ${t(cx, 275, 'middle', 32, 400, '#9a938c', 1, 'Make it your style')}
   ${qrPanel}
   ${t(80, 1740, 'start', 28, 400, '#b0a7ae', 5, 'TOTAL LOOK')}
-  ${t(80, 1832, 'start', 92, 900, '#1a1a1a', 0, baht(totalPrice))}
+  ${t(80, 1832, 'start', 92, 900, ACCENT, 0, baht(totalPrice))}
   ${t(80, 1882, 'start', 26, 400, '#c3bcbf', 1, 'doodstyles.com')}
 </svg>`;
 }
@@ -188,7 +200,24 @@ export async function renderLook({ items, hidden }, byId, origin) {
   const qrPng = await qrPngFor({ items, hidden }, origin);
   if (qrPng) layers.push({ input: qrPng, left: QR_LEFT, top: QR_TOP });
 
-  // เรนเดอร์พื้นหลัง+ข้อความด้วย resvg (ฟอนต์ครบ) → แล้ว composite ชุด+QR ด้วย sharp
-  const bgPng = renderSvg(backgroundSvg(total, !!qrPng));
+  // โลโก้ wordmark หัวการ์ด (แทนตัวหนังสือ DOOD)
+  let hasLogo = false;
+  if (LOGO_BUF) {
+    try {
+      // รีคัลเลอร์เป็นสี ACCENT: ทับ RGB ทุกพิกเซลด้วยสีเน้น เก็บ alpha เดิม (ขอบเนียนคงอยู่)
+      const { data, info } = await sharp(LOGO_BUF).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      for (let i = 0; i < info.width * info.height; i++) {
+        const o = i * info.channels;
+        data[o] = ACCENT_RGB.r; data[o + 1] = ACCENT_RGB.g; data[o + 2] = ACCENT_RGB.b;
+      }
+      const logo = await sharp(data, { raw: { width: info.width, height: info.height, channels: info.channels } })
+        .resize({ width: LOGO_W }).png().toBuffer();
+      layers.unshift({ input: logo, left: LOGO_LEFT, top: LOGO_TOP });
+      hasLogo = true;
+    } catch { /* โลโก้พัง → ใช้ตัวหนังสือ */ }
+  }
+
+  // เรนเดอร์พื้นหลัง+ข้อความด้วย resvg (ฟอนต์ครบ) → แล้ว composite ชุด+QR+โลโก้ ด้วย sharp
+  const bgPng = renderSvg(backgroundSvg(total, !!qrPng, hasLogo));
   return sharp(bgPng).composite(layers).png().toBuffer();
 }
