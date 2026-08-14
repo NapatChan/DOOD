@@ -3,6 +3,7 @@
 // (ไฟล์ขึ้นต้น _ = Vercel ไม่ถือเป็น route, เป็นแค่ helper)
 import sharp from 'sharp';
 import { Resvg } from '@resvg/resvg-js';
+import QRCode from 'qrcode';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -23,6 +24,10 @@ function renderSvg(svg) {
 const CATEGORIES = ['hat', 'top', 'pants'];
 const SEP = '.';
 export const W = 1080, H = 1920; // 9:16 IG story / TikTok
+
+// ตำแหน่ง QR มุมขวาล่างการ์ด (สแกนเปิดลุคนี้บนเว็บ — ให้ story ที่กดลิงก์ไม่ได้ดึง traffic ได้)
+const QR_SIZE = 190, QR_LEFT = W - 56 - QR_SIZE, QR_TOP = 1640;
+const DEFAULT_ORIGIN = 'https://www.doodstyles.com';
 
 // จัดวางเหมือนในเว็ป (src/types + Mascot): แบ่งพื้นที่แนวตั้งตาม LAYER_GROW + จุดยึด + scale รายชิ้น
 const LAYER_GROW = { hat: 0.8, top: 2.0, pants: 3.0 };
@@ -93,20 +98,27 @@ export function lookMeta({ items, hidden }, byId) {
 }
 
 // ---------- พื้นหลัง + ข้อความ (ฟอนต์ Kanit ผ่าน resvg — มี ฿ + ไม่พึ่งฟอนต์ระบบ) ----------
-function backgroundSvg(totalPrice) {
+function backgroundSvg(totalPrice, hasQr) {
   const cx = W / 2;
-  const t = (y, size, weight, fill, ls, s) =>
-    `<text x="${cx}" y="${y}" text-anchor="middle" font-family="Kanit" font-weight="${weight}" font-size="${size}" letter-spacing="${ls}" fill="${fill}">${esc(s)}</text>`;
+  const t = (x, y, anchor, size, weight, fill, ls, s) =>
+    `<text x="${x}" y="${y}" text-anchor="${anchor}" font-family="Kanit" font-weight="${weight}" font-size="${size}" letter-spacing="${ls}" fill="${fill}">${esc(s)}</text>`;
+  // แผงขาว + ป้ายกำกับหลัง QR (quiet zone ให้สแกนติด + บอกคนว่ากดสแกน)
+  const pad = 26, qcx = QR_LEFT + QR_SIZE / 2;
+  const qrPanel = hasQr
+    ? `<rect x="${QR_LEFT - pad}" y="${QR_TOP - pad}" width="${QR_SIZE + pad * 2}" height="${QR_SIZE + pad * 2}" rx="24" fill="#ffffff"/>
+       ${t(qcx, QR_TOP + QR_SIZE + pad + 34, 'middle', 24, 700, '#8a827b', 0, 'สแกนเปิดลุคนี้')}`
+    : '';
   return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
   <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0" stop-color="#f7f5f2"/><stop offset="1" stop-color="#eae7e2"/>
   </linearGradient></defs>
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
-  ${t(215, 96, 900, '#1a1a1a', -2, 'DOOD')}
-  ${t(265, 32, 400, '#9a938c', 1, 'Make it your style')}
-  ${t(1688, 28, 400, '#b0a7ae', 5, 'TOTAL LOOK')}
-  ${t(1788, 92, 900, '#1a1a1a', 0, baht(totalPrice))}
-  ${t(1848, 26, 400, '#c3bcbf', 1, 'doodstyles.com')}
+  ${t(cx, 215, 'middle', 96, 900, '#1a1a1a', -2, 'DOOD')}
+  ${t(cx, 265, 'middle', 32, 400, '#9a938c', 1, 'Make it your style')}
+  ${qrPanel}
+  ${t(80, 1740, 'start', 28, 400, '#b0a7ae', 5, 'TOTAL LOOK')}
+  ${t(80, 1832, 'start', 92, 900, '#1a1a1a', 0, baht(totalPrice))}
+  ${t(80, 1882, 'start', 26, 400, '#c3bcbf', 1, 'doodstyles.com')}
 </svg>`;
 }
 
@@ -115,8 +127,18 @@ async function loadAspect(buf) {
   return m.width / m.height;
 }
 
+// สร้าง QR (PNG) ของ URL ลุคนี้ — คืน null ถ้าพัง (การ์ดยังออกได้ปกติ ไม่มี QR)
+async function qrPngFor(look, origin) {
+  try {
+    return await QRCode.toBuffer(`${origin || DEFAULT_ORIGIN}/?${lookQuery(look)}`, {
+      type: 'png', width: QR_SIZE, margin: 0, errorCorrectionLevel: 'M',
+      color: { dark: '#1a1a1a', light: '#ffffff' },
+    });
+  } catch { return null; }
+}
+
 // ---------- เรนเดอร์รูปการ์ด (คืน PNG buffer, หรือ null ถ้าไม่มีชิ้นที่ใส่เลย) ----------
-export async function renderLook({ items, hidden }, byId) {
+export async function renderLook({ items, hidden }, byId, origin) {
   const CX = W / 2;
   const Wc = 560; // กว้างคอลัมน์ (เท่ากันทุกแถบ เหมือนเว็ป)
   const zoneTop = 340, zoneBottom = 1600;
@@ -162,7 +184,11 @@ export async function renderLook({ items, hidden }, byId) {
     bandTop += bandH;
   }
 
-  // เรนเดอร์พื้นหลัง+ข้อความด้วย resvg (ฟอนต์ครบ) → แล้ว composite ชุดด้วย sharp
-  const bgPng = renderSvg(backgroundSvg(total));
+  // QR มุมขวาล่าง (สแกนเปิดลุคนี้) — วางบนแผงขาวใน backgroundSvg
+  const qrPng = await qrPngFor({ items, hidden }, origin);
+  if (qrPng) layers.push({ input: qrPng, left: QR_LEFT, top: QR_TOP });
+
+  // เรนเดอร์พื้นหลัง+ข้อความด้วย resvg (ฟอนต์ครบ) → แล้ว composite ชุด+QR ด้วย sharp
+  const bgPng = renderSvg(backgroundSvg(total, !!qrPng));
   return sharp(bgPng).composite(layers).png().toBuffer();
 }

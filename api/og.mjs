@@ -14,7 +14,8 @@ export default async function handler(req, res) {
     const look = parseLook(req.query);
     if (!look) return fallback(res);
     const byId = await fetchItems(Object.values(look.items));
-    const png = await renderLook(look, byId);
+    const origin = `https://${req.headers.host}`;
+    const png = await renderLook(look, byId, origin);
     if (!png) return fallback(res);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'image/png');
