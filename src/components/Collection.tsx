@@ -10,7 +10,7 @@ import {
   type Category,
   type ClothingItem,
 } from '../types';
-import { EyeOffIcon } from './icons';
+import { BagIcon, EyeOffIcon } from './icons';
 
 interface CollectionProps {
   open: boolean;
@@ -280,7 +280,7 @@ export default function Collection({
             <div className="flex-1 space-y-3 overflow-y-auto px-5 pb-4 pt-1">
               {looks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center">
-                  <div className="text-5xl">🛍️</div>
+                  <div className="text-neutral-300"><BagIcon size={56} /></div>
                   <p className="mt-4 font-bold text-neutral-700">ยังไม่มีลุคที่บันทึก</p>
                   <p className="mt-1 text-sm text-neutral-400">
                     ปัดแต่งชุดที่ชอบ แล้วกด “อยากได้ลุคนี้ ✨”

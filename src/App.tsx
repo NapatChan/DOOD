@@ -13,6 +13,7 @@ import Mascot from './components/Mascot';
 import MobilePriceSheet from './components/MobilePriceSheet';
 import NavArrow from './components/NavArrows';
 import ShareMenu from './components/ShareMenu';
+import { BagIcon, DiceIcon } from './components/icons';
 import StageCaption from './components/StageCaption';
 import Toast from './components/Toast';
 import { useAuth } from './hooks/useAuth';
@@ -376,7 +377,7 @@ export default function App() {
     return (
       <div className="flex h-[100svh] w-full items-center justify-center bg-neutral-100">
         <div className="animate-pulse text-center">
-          <h1 className="font-logo text-3xl text-[#3356D9]">DOOD</h1>
+          <h1 className="font-logo text-3xl text-[#181004]">DOOD</h1>
           <p className="mt-2 text-sm text-neutral-400">กำลังโหลด…</p>
         </div>
       </div>
@@ -394,7 +395,7 @@ export default function App() {
         style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
       >
         <div>
-          <h1 className="font-logo text-xl leading-none text-[#3356D9]">DOOD</h1>
+          <h1 className="font-logo text-xl leading-none text-[#181004]">DOOD</h1>
           <p className="mt-1 text-[11px] leading-none text-neutral-500">Make it your style</p>
         </div>
         <div className="flex items-center gap-2">
@@ -467,7 +468,7 @@ export default function App() {
       {/* คอลัมน์คอนโทรล (desktop เท่านั้น): หัวข้อ + เลือกชั้น + ราคา */}
       <footer className="hidden w-96 flex-col items-start gap-4 lg:flex">
         <div className="mb-4">
-          <h1 className="font-logo text-6xl text-[#3356D9]">DOOD</h1>
+          <h1 className="font-logo text-6xl text-[#181004]">DOOD</h1>
           <p className="mt-3 text-neutral-500">Make it your style</p>
         </div>
         <div className="flex items-center gap-3">
@@ -479,9 +480,9 @@ export default function App() {
             type="button"
             onClick={shuffle}
             aria-label="สุ่มลุค"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-xl shadow-sm ring-1 ring-black/5 transition active:scale-90"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-neutral-800 shadow-sm ring-1 ring-black/5 transition active:scale-90"
           >
-            🎲
+            <DiceIcon size={22} />
           </button>
           <BagButton count={count} onClick={() => setCollectionOpen(true)} size={48} />
           <ExpandButton onClick={() => setPreviewOpen(true)} size={48} />
@@ -500,9 +501,9 @@ export default function App() {
           type="button"
           onClick={shuffle}
           aria-label="สุ่มลุค"
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 text-2xl shadow-lg ring-1 ring-black/10 transition active:scale-90"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 text-neutral-800 shadow-lg ring-1 ring-black/10 transition active:scale-90"
         >
-          🎲
+          <DiceIcon size={26} />
         </button>
       </div>
 
@@ -633,9 +634,9 @@ function BagButton({
       onClick={onClick}
       aria-label={`ลุคที่บันทึกไว้${count > 0 ? ` (${count})` : ''}`}
       style={{ height: size, width: size }}
-      className="relative flex shrink-0 items-center justify-center rounded-full bg-white text-lg shadow-sm ring-1 ring-black/5 transition active:scale-90"
+      className="relative flex shrink-0 items-center justify-center rounded-full bg-white text-neutral-800 shadow-sm ring-1 ring-black/5 transition active:scale-90"
     >
-      🛍️
+      <BagIcon size={Math.round(size * 0.5)} />
       {count > 0 && (
         <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-brand-blue px-1 text-[10px] font-bold tabular-nums text-white ring-2 ring-neutral-100">
           {count}

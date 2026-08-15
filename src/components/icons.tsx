@@ -61,3 +61,52 @@ export function EyeOffIcon({ size = 20 }: { size?: number }) {
     </svg>
   );
 }
+
+// ไอคอนถุงช้อปปิ้ง (เส้น) — ปุ่มเปิดคอลเลกชัน/ลุคที่บันทึก
+export function BagIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M5.5 8h13l-1 11.2a1.5 1.5 0 0 1-1.5 1.3H8a1.5 1.5 0 0 1-1.5-1.3L5.5 8Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.8 8V6.5a3.2 3.2 0 0 1 6.4 0V8"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// ไอคอนลูกเต๋า 3D (ลูกบาศก์ isometric — บน 1 · ซ้าย 3 · ขวา 2) — ปุ่มสุ่มลุค
+export function DiceIcon({ size = 20 }: { size?: number }) {
+  const dots = [
+    [12, 7.3], // หน้าบน (1)
+    [5.98, 11.53], [7.7, 14.38], [9.42, 17.23], // หน้าซ้าย (3) แนวทแยงกลางหน้า
+    [18.02, 11.53], [14.58, 17.23], // หน้าขวา (2) แนวทแยงกลางหน้า
+  ];
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M13.05 3.08 L19.55 6.67 Q20.6 7.25 20.6 8.45 L20.6 15.55 Q20.6 16.75 19.55 17.33 L13.05 20.92 Q12 21.5 10.95 20.92 L4.45 17.33 Q3.4 16.75 3.4 15.55 L3.4 8.45 Q3.4 7.25 4.45 6.67 L10.95 3.08 Q12 2.5 13.05 3.08 Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.4 7.25 L12 12 L20.6 7.25 M12 12 L12 21.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="butt"
+        strokeLinejoin="round"
+      />
+      {dots.map(([cx, cy], i) => (
+        <circle key={i} cx={cx} cy={cy} r="1.1" fill="currentColor" />
+      ))}
+    </svg>
+  );
+}

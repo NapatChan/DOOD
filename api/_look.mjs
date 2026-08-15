@@ -29,9 +29,8 @@ export const W = 1080, H = 1920; // 9:16 IG story / TikTok
 // ตำแหน่ง QR มุมขวาล่างการ์ด (สแกนเปิดลุคนี้บนเว็บ — ให้ story ที่กดลิงก์ไม่ได้ดึง traffic ได้)
 const QR_SIZE = 190, QR_LEFT = W - 56 - QR_SIZE, QR_TOP = 1640;
 const DEFAULT_ORIGIN = 'https://www.doodstyles.com';
-const BRAND_BLUE = '#3356D9';
-// สีเน้น: คุมทั้งโลโก้ + ราคารวม (สลับ blue/ดำ ที่เดียว)
-const ACCENT = '#1a1a1a';
+// สีเน้น espresso: คุมทั้งโลโก้ + ราคารวมบนการ์ด (ตรงกับสีแบรนด์ทั้งเว็บ)
+const ACCENT = '#181004';
 const ACCENT_RGB = { r: parseInt(ACCENT.slice(1, 3), 16), g: parseInt(ACCENT.slice(3, 5), 16), b: parseInt(ACCENT.slice(5, 7), 16) };
 
 // โลโก้ wordmark "DOOD" (โปร่ง) หัวการ์ด — โหลดครั้งเดียว · ไม่มีไฟล์ → fallback เป็นตัวหนังสือ
@@ -122,7 +121,7 @@ function backgroundSvg(totalPrice, hasQr, hasLogo) {
     : '';
   return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
   <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#fffefc"/><stop offset="1" stop-color="#f5f2ec"/>
+    <stop offset="0" stop-color="#fefbf4"/><stop offset="1" stop-color="#fbf7ef"/>
   </linearGradient></defs>
   <rect width="${W}" height="${H}" fill="url(#bg)"/>
   ${hasLogo ? '' : t(cx, 215, 'middle', 96, 900, ACCENT, -2, 'DOOD')}
