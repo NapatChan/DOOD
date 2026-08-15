@@ -35,6 +35,13 @@ function normScale(s) {
   return Math.round(Math.min(2, Math.max(0.3, n)) * 100) / 100;
 }
 
+// เลื่อนตำแหน่ง (% ของกล่องชิ้น) — จำกัด -50..50 กันหลุดจอ · ปัดทศนิยม 1
+function normOffset(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(Math.min(50, Math.max(-50, n)) * 10) / 10;
+}
+
 // สัดส่วนรูป กว้าง/สูง (ปัด 2 ตำแหน่ง) — ใช้สมดุลขนาดท่อนล่างทรงสั้น
 async function imageAspect(buffer) {
   const m = await sharp(buffer).metadata();
@@ -117,6 +124,8 @@ function toAdminProduct(row) {
   if (row.fit) p.fit = row.fit;
   if (row.aspect != null) p.aspect = row.aspect;
   if (row.scale != null) p.scale = row.scale;
+  if (row.offset_x != null) p.offsetX = row.offset_x;
+  if (row.offset_y != null) p.offsetY = row.offset_y;
   if (row.variant_group) p.group = row.variant_group;
   if (row.color_name) p.colorName = row.color_name;
   if (row.needs_fix) p.needsFix = true;
@@ -306,6 +315,10 @@ export function adminApiPlugin() {
             };
             const scale = normScale(body.scale);
             if (scale && scale !== 1) row.scale = scale;
+            const ox = normOffset(body.offsetX);
+            const oy = normOffset(body.offsetY);
+            if (ox) row.offset_x = ox;
+            if (oy) row.offset_y = oy;
 
             const inserted = await dbInsert(row);
             return sendJson(res, 201, { product: toAdminProduct(inserted) });
@@ -343,6 +356,8 @@ export function adminApiPlugin() {
                 const s = normScale(body.scale);
                 patch.scale = s && s !== 1 ? s : null;
               }
+              if (body.offsetX !== undefined) patch.offset_x = normOffset(body.offsetX);
+              if (body.offsetY !== undefined) patch.offset_y = normOffset(body.offsetY);
 
               const newCategory =
                 body.category && body.category !== current.category ? body.category : null;

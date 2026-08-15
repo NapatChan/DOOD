@@ -49,6 +49,8 @@ interface FormState {
   gender: Gender;
   fit: Fit | 'auto'; // ทรงท่อนล่าง (auto = เดาจากรูป)
   scale: number; // ตัวคูณขนาดรายชิ้น (1 = ปกติ)
+  offsetX: number; // เลื่อนตำแหน่งแนวนอน (% ของกล่องชิ้น)
+  offsetY: number; // เลื่อนตำแหน่งแนวตั้ง (% ของกล่องชิ้น)
   aspect?: number; // สัดส่วนรูป (มีตอนแก้ไขของเดิม) — ใช้พรีวิว
   imageBase64: string | null; // รูปใหม่ (ถ้ามี)
   previewUrl: string | null; // แสดง preview (รูปใหม่ หรือรูปเดิมตอนแก้ไข)
@@ -67,6 +69,8 @@ const EMPTY: FormState = {
   gender: 'unisex',
   fit: 'auto',
   scale: 1,
+  offsetX: 0,
+  offsetY: 0,
   aspect: undefined,
   imageBase64: null,
   previewUrl: null,
@@ -131,6 +135,8 @@ export default function AdminApp() {
           fit: ref.fit,
           aspect: ref.aspect,
           scale: ref.scale,
+          offsetX: ref.offsetX,
+          offsetY: ref.offsetY,
         };
     }
     return map;
@@ -141,6 +147,8 @@ export default function AdminApp() {
     fit: form.fit,
     aspect: form.aspect,
     scale: form.scale,
+    offsetX: form.offsetX,
+    offsetY: form.offsetY,
   };
 
   async function refresh() {
@@ -195,6 +203,8 @@ export default function AdminApp() {
       gender: p.gender || 'unisex',
       fit: p.fit || 'auto',
       scale: p.scale ?? 1,
+      offsetX: p.offsetX ?? 0,
+      offsetY: p.offsetY ?? 0,
       aspect: p.aspect,
       imageBase64: null,
       previewUrl: assetUrl(p.image) ?? null,
@@ -231,6 +241,8 @@ export default function AdminApp() {
           gender: form.gender,
           fit: form.fit,
           scale: form.scale,
+          offsetX: form.offsetX,
+          offsetY: form.offsetY,
           ...(form.imageBase64 ? { imageBase64: form.imageBase64, removeBg } : {}),
         });
         // แก้ขนาดทั้งกลุ่ม — apply เฉพาะ scale ไปยังชิ้นอื่นในกลุ่มเดียวกัน (ฟิลด์อื่นคงเดิมรายชิ้น)
@@ -252,6 +264,8 @@ export default function AdminApp() {
           gender: form.gender,
           fit: form.fit,
           scale: form.scale,
+          offsetX: form.offsetX,
+          offsetY: form.offsetY,
           imageBase64: form.imageBase64!,
           removeBg,
         });
@@ -502,6 +516,74 @@ export default function AdminApp() {
                         รีเซ็ต
                       </button>
                     )}
+                  </div>
+                  {/* ปุ่มลัดตั้งขนาดที่ใช้บ่อย */}
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <span className="whitespace-nowrap text-xs text-neutral-400">ลัด</span>
+                    {[90, 85, 75].map((pct) => {
+                      const active = Math.round(form.scale * 100) === pct;
+                      return (
+                        <button
+                          key={pct}
+                          type="button"
+                          onClick={() => {
+                            setForm((f) => ({ ...f, scale: pct / 100 }));
+                            setScalePct(String(pct));
+                          }}
+                          className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition active:scale-95 ${
+                            active
+                              ? 'border-neutral-900 bg-neutral-900 text-white'
+                              : 'border-neutral-300 text-neutral-700 hover:border-neutral-500'
+                          }`}
+                        >
+                          {pct}%
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* ปรับตำแหน่งชิ้น (D-pad) — เลื่อนซ้าย-ขวา/บน-ล่าง ทีละ 1% */}
+                  <div className="mt-3 flex items-center gap-3">
+                    <span className="whitespace-nowrap text-xs font-semibold text-neutral-600">
+                      ตำแหน่ง
+                    </span>
+                    {(() => {
+                      const clamp = (v: number) => Math.min(50, Math.max(-50, Math.round(v * 10) / 10));
+                      const nudge = (dx: number, dy: number) =>
+                        setForm((f) => ({
+                          ...f,
+                          offsetX: clamp(f.offsetX + dx),
+                          offsetY: clamp(f.offsetY + dy),
+                        }));
+                      const moved = form.offsetX !== 0 || form.offsetY !== 0;
+                      const pad =
+                        'flex h-7 w-7 items-center justify-center rounded-md border border-neutral-300 text-sm text-neutral-700 transition hover:border-neutral-500 active:scale-90';
+                      return (
+                        <>
+                          <div className="grid grid-cols-3 gap-1">
+                            <span />
+                            <button type="button" aria-label="เลื่อนขึ้น" className={pad} onClick={() => nudge(0, -1)}>↑</button>
+                            <span />
+                            <button type="button" aria-label="เลื่อนซ้าย" className={pad} onClick={() => nudge(-1, 0)}>←</button>
+                            <button
+                              type="button"
+                              aria-label="รีเซ็ตตำแหน่ง"
+                              disabled={!moved}
+                              className={`${pad} text-xs disabled:opacity-30`}
+                              onClick={() => setForm((f) => ({ ...f, offsetX: 0, offsetY: 0 }))}
+                            >
+                              ⟲
+                            </button>
+                            <button type="button" aria-label="เลื่อนขวา" className={pad} onClick={() => nudge(1, 0)}>→</button>
+                            <span />
+                            <button type="button" aria-label="เลื่อนลง" className={pad} onClick={() => nudge(0, 1)}>↓</button>
+                            <span />
+                          </div>
+                          <span className="text-xs tabular-nums text-neutral-400">
+                            X {form.offsetX} · Y {form.offsetY}
+                          </span>
+                        </>
+                      );
+                    })()}
                   </div>
                   {groupSiblings.length > 0 && (
                     <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs text-neutral-700">

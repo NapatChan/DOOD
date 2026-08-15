@@ -1,5 +1,5 @@
 import type { Category, ClothingItem } from '../types';
-import { CATEGORY_LABEL, GARMENT_ORIGIN, onBodyBackground, onBodyScale } from '../types';
+import { CATEGORY_LABEL, GARMENT_ORIGIN, onBodyBackground, onBodyTransform } from '../types';
 import { EyeOffIcon } from './icons';
 
 interface ClothingLayerProps {
@@ -58,7 +58,7 @@ export default function ClothingLayer({
         backgroundSize: item.imageUrl ? onBodyBackground(category, item.fit, item.aspect).size : 'cover',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: item.imageUrl ? onBodyBackground(category, item.fit, item.aspect).position : 'center',
-        transform: onBodyScale(item.scale),
+        transform: onBodyTransform(item.scale, item.offsetX, item.offsetY),
         transformOrigin: GARMENT_ORIGIN[category],
       }}
     />

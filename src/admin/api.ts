@@ -20,6 +20,8 @@ export interface AdminProduct {
   fit?: Fit; // ทรงท่อนล่าง (เฉพาะ pants)
   aspect?: number; // สัดส่วนรูป (เฉพาะ pants)
   scale?: number; // ตัวคูณขนาดรายชิ้น (1 = ปกติ)
+  offsetX?: number; // เลื่อนตำแหน่งแนวนอน (% ของกล่องชิ้น)
+  offsetY?: number; // เลื่อนตำแหน่งแนวตั้ง (% ของกล่องชิ้น)
   group?: string; // คีย์จับกลุ่มสินค้าตัวเดียวกันหลายสี → แทบเลือกสี
   colorName?: string; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี
   needsFix?: boolean; // ติ๊กว่ามีปัญหา → ซ่อนจากเว็บลูกค้า + ไว้กลับมาแก้
@@ -35,6 +37,8 @@ export interface ProductInput {
   gender?: Gender;
   fit?: Fit | 'auto'; // ทรงท่อนล่าง: auto=เดาจากสัดส่วนรูป (ค่าเริ่มต้น)
   scale?: number; // ตัวคูณขนาดรายชิ้น (1 = ปกติ)
+  offsetX?: number; // เลื่อนตำแหน่งแนวนอน (%)
+  offsetY?: number; // เลื่อนตำแหน่งแนวตั้ง (%)
   imageBase64?: string; // dataURL หรือ base64 ล้วน
   removeBg?: 'auto' | 'on' | 'off'; // ตัดพื้นหลัง: auto=ตัดถ้ายังไม่โปร่ง (ค่าเริ่มต้น)
   group?: string; // คีย์จับกลุ่มสินค้าตัวเดียวกันหลายสี (เว้น = ชิ้นเดี่ยว)

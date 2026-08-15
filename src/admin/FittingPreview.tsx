@@ -4,7 +4,7 @@ import {
   GARMENT_ORIGIN,
   LAYER_GROW,
   onBodyBackground,
-  onBodyScale,
+  onBodyTransform,
   type Category,
   type Fit,
 } from '../types';
@@ -14,6 +14,8 @@ export interface PreviewGarment {
   fit?: Fit | 'auto';
   aspect?: number;
   scale?: number;
+  offsetX?: number;
+  offsetY?: number;
 }
 
 interface FittingPreviewProps {
@@ -43,7 +45,7 @@ function GarmentFill({ cat, g, dim }: { cat: Category; g: PreviewGarment; dim?: 
         backgroundSize: bg.size,
         backgroundRepeat: 'no-repeat',
         backgroundPosition: bg.position,
-        transform: onBodyScale(g.scale),
+        transform: onBodyTransform(g.scale, g.offsetX, g.offsetY),
         transformOrigin: GARMENT_ORIGIN[cat],
       }}
     />

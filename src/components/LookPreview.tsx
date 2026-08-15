@@ -5,7 +5,7 @@ import {
   GARMENT_ORIGIN,
   LAYER_GROW,
   onBodyBackground,
-  onBodyScale,
+  onBodyTransform,
   type Category,
   type ClothingItem,
 } from '../types';
@@ -72,7 +72,7 @@ export default function LookPreview({ open, onClose, selectedItems, hidden }: Lo
                     backgroundSize: item.imageUrl ? onBodyBackground(cat, item.fit, item.aspect).size : 'cover',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: item.imageUrl ? onBodyBackground(cat, item.fit, item.aspect).position : 'center',
-                    transform: onBodyScale(item.scale),
+                    transform: onBodyTransform(item.scale, item.offsetX, item.offsetY),
                     transformOrigin: GARMENT_ORIGIN[cat],
                   }}
                 />

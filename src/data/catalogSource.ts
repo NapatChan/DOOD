@@ -31,6 +31,8 @@ interface RawProduct {
   fit?: Fit;
   aspect?: number;
   scale?: number;
+  offset_x?: number; // Supabase: เลื่อนตำแหน่งแนวนอน (%)
+  offset_y?: number; // Supabase: เลื่อนตำแหน่งแนวตั้ง (%)
   variant_group?: string; // Supabase: คอลัมน์จับกลุ่มสี (group เป็นคำสงวน SQL เลยใช้ชื่อนี้)
   group?: string; // snapshot: ใช้ชื่อสั้น
   color_name?: string; // Supabase
@@ -52,6 +54,8 @@ function toItem(p: RawProduct): ClothingItem {
     fit: p.fit || undefined,
     aspect: p.aspect || undefined,
     scale: p.scale || undefined,
+    offsetX: p.offset_x || undefined,
+    offsetY: p.offset_y || undefined,
     group: p.variant_group || p.group || undefined,
     colorName: p.color_name || p.colorName || undefined,
   };

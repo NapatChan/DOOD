@@ -4,7 +4,7 @@ import {
   GARMENT_ORIGIN,
   LAYER_GROW,
   onBodyBackground,
-  onBodyScale,
+  onBodyTransform,
   type Category,
   type Gender,
 } from '../types';
@@ -203,7 +203,7 @@ export default function CuratedLooks({
                         backgroundSize: bg ? bg.size : 'cover',
                         backgroundRepeat: 'no-repeat',
                         backgroundPosition: bg ? bg.position : 'center',
-                        transform: onBodyScale(it.scale),
+                        transform: onBodyTransform(it.scale, it.offsetX, it.offsetY),
                         transformOrigin: GARMENT_ORIGIN[cat],
                       }}
                     />

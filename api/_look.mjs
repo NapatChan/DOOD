@@ -86,7 +86,7 @@ export async function fetchItems(ids) {
   if (!SB || !KEY || !uniq.length) return {};
   const inList = uniq.map(encodeURIComponent).join(',');
   const res = await fetch(
-    `${SB}/rest/v1/products?select=id,category,name,price,image_url,scale,fit&is_active=eq.true&id=in.(${inList})`,
+    `${SB}/rest/v1/products?select=id,category,name,price,image_url,scale,fit,offset_x,offset_y&is_active=eq.true&id=in.(${inList})`,
     { headers: { apikey: KEY, Authorization: `Bearer ${KEY}` } },
   );
   if (!res.ok) return {};
@@ -166,7 +166,14 @@ export async function renderLook({ items, hidden }, byId, origin) {
       const r = await fetch(it.image_url);
       if (!r.ok) continue;
       const buf = Buffer.from(await r.arrayBuffer());
-      buffers[c] = { buf, aspect: await loadAspect(buf), scale: Number(it.scale) || 1, fit: it.fit };
+      buffers[c] = {
+        buf,
+        aspect: await loadAspect(buf),
+        scale: Number(it.scale) || 1,
+        fit: it.fit,
+        offsetX: Number(it.offset_x) || 0,
+        offsetY: Number(it.offset_y) || 0,
+      };
       total += Number(it.price) || 0;
       wornCount += 1;
     } catch { /* ข้ามชิ้นที่โหลดไม่ได้ */ }
@@ -189,8 +196,11 @@ export async function renderLook({ items, hidden }, byId, origin) {
       if (ANCHOR[c] === 'bottom') top = bandTop + bandH - h;
       else if (ANCHOR[c] === 'top') top = bandTop;
       else top = bandTop + (bandH - h) / 2;
+      // เลื่อนตำแหน่ง (offset % ของกล่องชิ้น = w,h) เหมือน translate ในเว็บ
+      const left = CX - w / 2 + (w * g.offsetX) / 100;
+      top += (h * g.offsetY) / 100;
       const resized = await sharp(g.buf).resize({ height: Math.round(h), fit: 'inside' }).png().toBuffer();
-      layers.push({ input: resized, left: Math.round(CX - w / 2), top: Math.round(top) });
+      layers.push({ input: resized, left: Math.round(left), top: Math.round(top) });
     }
     bandTop += bandH;
   }

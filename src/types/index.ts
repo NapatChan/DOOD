@@ -59,9 +59,19 @@ export const GARMENT_ORIGIN: Record<Category, string> = {
   top: 'center',
   pants: 'center top',
 };
-// transform ปรับขนาดรายชิ้น — scale 1/ไม่ระบุ = ไม่แตะ (คงลุคเดิม)
-export function onBodyScale(scale?: number): string | undefined {
-  return !scale || scale === 1 ? undefined : `scale(${scale})`;
+// transform รายชิ้น — เลื่อนตำแหน่ง (offsetX/Y เป็น % ของกล่องชิ้น) + ย่อ/ขยาย (scale)
+// ค่าปริยาย (offset 0, scale 1) = ไม่แตะ (คงลุคเดิม) · translate ก่อน scale
+export function onBodyTransform(
+  scale?: number,
+  offsetX?: number,
+  offsetY?: number,
+): string | undefined {
+  const tx = offsetX || 0;
+  const ty = offsetY || 0;
+  const parts: string[] = [];
+  if (tx !== 0 || ty !== 0) parts.push(`translate(${tx}%, ${ty}%)`);
+  if (scale && scale !== 1) parts.push(`scale(${scale})`);
+  return parts.length ? parts.join(' ') : undefined;
 }
 
 // สัดส่วนความสูงแบบ "คนใส่ชุด" (หัว < ไหล่ < สะโพก) — ใช้ทั้งมาสคอตหลักและหน้าดูเต็ม
@@ -95,6 +105,8 @@ export interface ClothingItem {
   fit?: Fit; // ทรงท่อนล่าง (ไม่ระบุ = long)
   aspect?: number; // สัดส่วนรูป กว้าง/สูง — ใช้สมดุลขนาดท่อนล่างทรงสั้นตามทรง
   scale?: number; // ตัวคูณขนาดรายชิ้น (ปรับในแอดมิน, ไม่ระบุ = 1 = ขนาดปกติ)
+  offsetX?: number; // เลื่อนซ้าย-ขวา (% ของกล่องชิ้น, +=ขวา) — ปรับในแอดมิน
+  offsetY?: number; // เลื่อนบน-ล่าง (% ของกล่องชิ้น, +=ล่าง) — ปรับในแอดมิน
   group?: string; // คีย์จับกลุ่ม "สินค้าตัวเดียวกันหลายสี" (variant group) — ใช้ทำแทบเลือกสี
   colorName?: string; // ชื่อสีไทยไว้โชว์ในแทบเลือกสี ("ครีม", "กรมท่า") — ต่างจาก color ที่เป็น hex
 }
