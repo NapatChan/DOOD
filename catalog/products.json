@@ -5657,7 +5657,7 @@
       "buyUrl": "https://s.shopee.co.th/8pkzmwd7gT",
       "style": "vintage",
       "gender": "female",
-      "scale": 0.85,
+      "scale": 0.9,
       "group": "หมวกบัคเก็ตไหมพรม",
       "colorName": "มัสตาร์ด"
     },
@@ -5671,7 +5671,7 @@
       "buyUrl": "https://s.shopee.co.th/8pkzmwd7gT",
       "style": "vintage",
       "gender": "female",
-      "scale": 0.85,
+      "scale": 0.9,
       "group": "หมวกบัคเก็ตไหมพรม",
       "colorName": "สนิม"
     },
@@ -5685,7 +5685,7 @@
       "buyUrl": "https://s.shopee.co.th/8pkzmwd7gT",
       "style": "vintage",
       "gender": "female",
-      "scale": 0.85,
+      "scale": 0.9,
       "group": "หมวกบัคเก็ตไหมพรม",
       "colorName": "แทน"
     },
@@ -5699,7 +5699,7 @@
       "buyUrl": "https://s.shopee.co.th/8pkzmwd7gT",
       "style": "vintage",
       "gender": "female",
-      "scale": 0.85,
+      "scale": 0.9,
       "group": "หมวกบัคเก็ตไหมพรม",
       "colorName": "ครีม"
     },
@@ -5713,7 +5713,7 @@
       "buyUrl": "https://s.shopee.co.th/8pkzmwd7gT",
       "style": "vintage",
       "gender": "female",
-      "scale": 0.85,
+      "scale": 0.9,
       "group": "หมวกบัคเก็ตไหมพรม",
       "colorName": "ดำ"
     },
@@ -5769,6 +5769,7 @@
       "buyUrl": "https://s.shopee.co.th/9pdWyhsJeU",
       "style": "casual",
       "gender": "female",
+      "scale": 1.2,
       "group": "หมวกปีกกว้างมีเชือกผูกคาง",
       "colorName": "ครีม"
     },
@@ -5782,6 +5783,7 @@
       "buyUrl": "https://s.shopee.co.th/9pdWyhsJeU",
       "style": "casual",
       "gender": "female",
+      "scale": 1.2,
       "group": "หมวกปีกกว้างมีเชือกผูกคาง",
       "colorName": "ดำ"
     },
@@ -5795,6 +5797,7 @@
       "buyUrl": "https://s.shopee.co.th/9pdWyhsJeU",
       "style": "casual",
       "gender": "female",
+      "scale": 1.2,
       "group": "หมวกปีกกว้างมีเชือกผูกคาง",
       "colorName": "แทน"
     },
