@@ -20,6 +20,13 @@ import { useAuth } from './hooks/useAuth';
 import { useSavedLooks } from './hooks/useSavedLooks';
 import { useWardrobe } from './hooks/useWardrobe';
 import { buildCardImageUrl, buildShareUrl, parseLookFromSearch } from './lib/lookUrl';
+import {
+  trackSaveLook,
+  trackShareLink,
+  trackSaveImage,
+  trackShuffle,
+  trackSelectColor,
+} from './lib/analytics';
 import { getCuratedLooks, looksForGender, type CuratedLookData } from './data/curatedLooksSource';
 import { CATEGORIES, type Category, type GenderFilter } from './types';
 
@@ -193,6 +200,7 @@ export default function App() {
     if (!selectedItems) return;
     const already = isSaved(selectedItems, state.hidden);
     void save(selectedItems, state.hidden);
+    trackSaveLook(!already);
     showToast(already ? 'ลุคนี้บันทึกไว้แล้ว ✓' : 'บันทึกลุคแล้ว 💛');
   }, [selectedItems, save, isSaved, state.hidden]);
 
@@ -207,6 +215,7 @@ export default function App() {
       {} as Record<Category, string>,
     );
     const url = buildShareUrl(idMap, state.hidden);
+    trackShareLink();
     const shareData = { title: 'DOOD', text: 'ดูลุคที่ฉันจัดใน DOOD 👗✨', url };
     if (navigator.share) {
       try {
@@ -230,6 +239,7 @@ export default function App() {
   const handleSaveImage = useCallback(async () => {
     if (!selectedItems || savingImage) return;
     setSavingImage(true);
+    trackSaveImage();
     showToast('กำลังสร้างรูปลุค… 🎨');
     const idMap = CATEGORIES.reduce(
       (acc, c) => {
@@ -279,6 +289,22 @@ export default function App() {
       setSavingImage(false);
     }
   }, [selectedItems, state.hidden, savingImage]);
+
+  // สุ่มลุค + วัด event (ห่อ shuffle เดิมไว้ ไม่แตะลอจิก)
+  const handleShuffle = useCallback(() => {
+    trackShuffle();
+    shuffle();
+  }, [shuffle]);
+
+  // เลือกสีจากแทบสี + วัด event (หาชื่อสีจาก variants ที่กำลังโชว์)
+  const handleSelectVariant = useCallback(
+    (index: number) => {
+      const v = variants.find((x) => x.index === index);
+      trackSelectColor(selectedLayer, v?.colorName);
+      selectVariant(index);
+    },
+    [variants, selectVariant, selectedLayer],
+  );
 
   // ใส่ลุคจากคอลเลกชัน → โหลดขึ้นมาสคอต + ปิด overlay (ไม่มีป็อปอัพ ปิดเองก็รู้แล้ว)
   const handleApplyLook = useCallback(
@@ -459,7 +485,7 @@ export default function App() {
             layer={selectedLayer}
             item={selectedItems[selectedLayer]}
             variants={variants}
-            onSelectVariant={selectVariant}
+            onSelectVariant={handleSelectVariant}
             hidden={layerHidden}
           />
         </div>
@@ -478,7 +504,7 @@ export default function App() {
           <LayerSelector selectedLayer={selectedLayer} onSelectLayer={selectLayer} />
           <button
             type="button"
-            onClick={shuffle}
+            onClick={handleShuffle}
             aria-label="สุ่มลุค"
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-neutral-800 shadow-sm ring-1 ring-black/5 transition active:scale-90"
           >
@@ -499,7 +525,7 @@ export default function App() {
       >
         <button
           type="button"
-          onClick={shuffle}
+          onClick={handleShuffle}
           aria-label="สุ่มลุค"
           className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 text-neutral-800 shadow-lg ring-1 ring-black/10 transition active:scale-90"
         >
@@ -512,7 +538,7 @@ export default function App() {
         style={{ bottom: 'calc(env(safe-area-inset-bottom) + 42px)' }}
         className="fixed left-4 z-30 lg:hidden"
       >
-        <ColorSwatchPicker variants={variants} onSelect={selectVariant} />
+        <ColorSwatchPicker variants={variants} onSelect={handleSelectVariant} />
       </div>
 
       {/* แถบราคาบนมือถือ — ซ่อน/โผล่ด้วยการลากขึ้น */}

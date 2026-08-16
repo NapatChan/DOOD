@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import type { Category, ClothingItem } from '../types';
 import { CATEGORIES, CATEGORY_LABEL } from '../types';
 import { ShareIcon } from './icons';
+import { trackBuy } from '../lib/analytics';
 
 interface MobilePriceSheetProps {
   selectedItems: Record<Category, ClothingItem>;
@@ -69,6 +70,7 @@ export default function MobilePriceSheet({
                     href={selectedItems[cat].buyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackBuy(selectedItems[cat], 'sheet')}
                     className="text-xs font-semibold text-emerald-600 underline"
                   >
                     ซื้อ ↗

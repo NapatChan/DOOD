@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import type { SavedLook } from '../data/savedLooksStore';
 import { buyLinkFor, hasRealLink } from '../lib/links';
+import { trackBuy } from '../lib/analytics';
 import { styleLabel } from '../config/styles';
 import {
   CATEGORIES,
@@ -151,6 +152,7 @@ function LookCard({
                     href={buyLinkFor(item)}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackBuy(item, 'collection')}
                     className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-neutral-50"
                   >
                     <Thumb item={item} size={40} />
