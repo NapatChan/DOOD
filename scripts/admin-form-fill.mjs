@@ -106,7 +106,8 @@ if (dry) {
 
 const browser = await chromium.launch({ headless: !headed });
 const page = await browser.newPage();
-await page.goto(`${BASE}/admin.html`, { waitUntil: 'networkidle' });
+await page.goto(`${BASE}/admin.html`, { waitUntil: 'domcontentloaded' });
+await page.locator('input[type="file"]').first().waitFor({ state: 'attached', timeout: 15000 });
 
 let ok = 0, fail = 0;
 
